@@ -228,10 +228,32 @@
       '六年1班', '六年2班', '六年3班'
     ];
 
-    // 科任教師資料設定 (目前先放假資料，後續等您提供後即可直接替換這裡)
+    // --- 課表真實資料儲存區 ---
+    const classSchedules = {
+      '一年1班': [
+        // 第一節
+        ['國語<br><span class="text-xs text-gray-500">徐淑卿</span>', '國語<br><span class="text-xs text-gray-500">徐淑卿</span>', '國語<br><span class="text-xs text-gray-500">徐淑卿</span>', '國語<br><span class="text-xs text-gray-500">徐淑卿</span>', '國語<br><span class="text-xs text-gray-500">徐淑卿</span>'],
+        // 第二節
+        ['數學<br><span class="text-xs text-gray-500">徐淑卿</span>', '數學<br><span class="text-xs text-gray-500">徐淑卿</span>', '數學<br><span class="text-xs text-gray-500">徐淑卿</span>', '數學<br><span class="text-xs text-gray-500">徐淑卿</span>', '健康<br><span class="text-xs text-gray-500">邱子芸</span>'],
+        // 第三節
+        ['彈性<br><span class="text-xs text-gray-500">徐淑卿</span>', '英語<br><span class="text-xs text-gray-500">盧岱岑</span>', '體育<br><span class="text-xs text-gray-500">李柏勳</span>', '生活<br><span class="text-xs text-gray-500">徐淑卿</span>', '體育<br><span class="text-xs text-gray-500">李柏勳</span>'],
+        // 第四節
+        ['生活<br><span class="text-xs text-gray-500">徐淑卿</span>', '彈性<br><span class="text-xs text-gray-500">徐淑卿</span>', '生活<br><span class="text-xs text-gray-500">徐淑卿</span>', '國語<br><span class="text-xs text-gray-500">徐淑卿</span>', '本土<br><span class="text-xs text-gray-500">葉玟孝</span>'],
+        // 中午 (合併處理)
+        [], 
+        // 第五節
+        ['生活<br><span class="text-xs text-gray-500">徐淑卿</span>', '', '', '', ''],
+        // 第六節
+        ['生活<br><span class="text-xs text-gray-500">徐淑卿</span>', '', '', '', ''],
+        // 第七節
+        ['彈性<br><span class="text-xs text-gray-500">徐淑卿</span>', '', '', '', '']
+      ]
+    };
+
+    // 科任教師資料設定 
     const subjectTeachers = {
-      '教務處': ['教務主任-楊淑雯', '教學組-施雅芸', '註冊組-林怡玲', '資訊執秘-陳宏漳'],
-      '學務處': ['學務主任-謝宛娜', '生教體育組-李宜昆', '訓育衛生組-胡芝琳', '午餐執秘-邱子芸'],
+      '教務處': ['教務主任', '教學組長', '註冊組', '資訊執秘'],
+      '學務處': ['學務主任', '生教體育組', '訓育衛生組', '午餐執秘'],
       '總務處': ['總務主任', '事務組長', '出納組長'],
       '輔導室': ['輔導主任', '輔導組長'],
       '純科任': ['音樂老師 A', '音樂老師 B', '美術老師', '英語老師', '自然老師']
@@ -239,15 +261,15 @@
 
     // 課表節次框架設定
     const timeSlots = [
-      { name: '早自習', time: '08:00<br>|<br>08:25', isBreak: false },
-      { name: '第一節', time: '08:30<br>|<br>09:10', isBreak: false },
-      { name: '第二節', time: '09:20<br>|<br>10:00', isBreak: false },
-      { name: '第三節', time: '10:30<br>|<br>11:10', isBreak: false },
-      { name: '第四節', time: '11:20<br>|<br>12:00', isBreak: false },
-      { name: '午餐午休', time: '12:00<br>|<br>13:35', isBreak: true },
-      { name: '第五節', time: '13:40<br>|<br>14:20', isBreak: false },
-      { name: '第六節', time: '14:30<br>|<br>15:10', isBreak: false },
-      { name: '第七節', time: '15:20<br>|<br>16:00', isBreak: false },
+      { name: '早自習', time: '08:00<br>|<br>08:25', isBreak: false, index: -1 }, // 早自習不填課
+      { name: '第一節', time: '08:30<br>|<br>09:10', isBreak: false, index: 0 },
+      { name: '第二節', time: '09:20<br>|<br>10:00', isBreak: false, index: 1 },
+      { name: '第三節', time: '10:30<br>|<br>11:10', isBreak: false, index: 2 },
+      { name: '第四節', time: '11:20<br>|<br>12:00', isBreak: false, index: 3 },
+      { name: '午餐午休', time: '12:00<br>|<br>13:35', isBreak: true, index: 4 },
+      { name: '第五節', time: '13:40<br>|<br>14:20', isBreak: false, index: 5 },
+      { name: '第六節', time: '14:30<br>|<br>15:10', isBreak: false, index: 6 },
+      { name: '第七節', time: '15:20<br>|<br>16:00', isBreak: false, index: 7 },
     ];
 
     // DOM 元素綁定
@@ -293,6 +315,10 @@
     // 繪製課表框架
     function renderSchedule() {
       let html = '';
+      const currentRole = roleSelect.value;
+      const currentClass = classSelect.value;
+      const scheduleData = classSchedules[currentClass]; // 嘗試抓取該班級的資料
+
       timeSlots.forEach(slot => {
         html += `<tr>`;
         // 第一欄：時間
@@ -304,10 +330,20 @@
         // 如果是午休，則合併 5 個欄位
         if (slot.isBreak) {
           html += `<td colspan="5" class="lunch-break font-bold">午 🍽️ 餐 😴 午 💤 休</td>`;
-        } else {
-          // 星期一到星期五的空欄位 (後續若有真實資料，可在這邊判斷填入)
+        } else if (slot.index === -1) {
+          // 早自習預設留白
           for (let i = 0; i < 5; i++) {
-            html += `<td></td>`; // 目前留白，讓使用者知道格子在哪
+             html += `<td></td>`; 
+          }
+        } else {
+          // 星期一到星期五的欄位
+          for (let i = 0; i < 5; i++) {
+            // 判斷是否為導師且有該班級資料
+            if (currentRole === '導師' && scheduleData && scheduleData[slot.index] && scheduleData[slot.index][i]) {
+                html += `<td>${scheduleData[slot.index][i]}</td>`;
+            } else {
+                html += `<td></td>`; // 沒有資料就留白
+            }
           }
         }
         html += `</tr>`;
