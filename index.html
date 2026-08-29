@@ -1,84 +1,188 @@
-// ... existing code ...
+import React, { useState, useEffect } from 'react';
+
+// --- 資料結構定義 ---
+const homeroomClasses = {
+  "一年級": ["101", "102", "103"],
+  "二年級": ["201", "202", "203"],
+  "三年級": ["301", "302", "303"],
+  "四年級": ["401", "402", "403"],
+  "五年級": ["501", "502", "503", "504"],
+  "六年級": ["601", "602", "603"]
+};
+
+// 科任佔位名單 (後續可替換為實際老師名稱)
+const subjectOffices = {
+  "教務處": ["教務處老師A", "教務處老師B"],
+  "學務處": ["學務處老師A", "學務處老師B"],
+  "總務處": ["總務處老師A"],
+  "輔導室": ["輔導室老師A", "輔導室老師B"],
+  "純科任": ["自然老師A", "音樂老師B", "美勞老師C"]
+};
+
+const timeSlots = [
+  { id: 'morning', name: '早自習', time: '08:00\n~\n08:25' },
+  { id: 'p1', name: '第一節', time: '08:30\n~\n09:10' },
+  { id: 'p2', name: '第二節', time: '09:20\n~\n10:00' },
+  { id: 'p3', name: '第三節', time: '10:30\n~\n11:10' },
+  { id: 'p4', name: '第四節', time: '11:20\n~\n12:00' },
+  { id: 'noon', name: '午餐午休', time: '12:00\n~\n13:35', isBreak: true },
+  { id: 'p5', name: '第五節', time: '13:40\n~\n14:20' },
+  { id: 'p6', name: '第六節', time: '14:30\n~\n15:10' },
+  { id: 'p7', name: '第七節', time: '15:20\n~\n16:00' }
+];
+
+const days = ['星期一', '星期二', '星期三', '星期四', '星期五'];
+
 export default function App() {
   const [isAdmin, setIsAdmin] = useState(false);
   const [selectedEntity, setSelectedEntity] = useState("101");
+  const [openMenu, setOpenMenu] = useState(null);
   const [scheduleData, setScheduleData] = useState({});
 
   // 載入字體
-// ... existing code ...
+  useEffect(() => {
+    const link = document.createElement('link');
+    link.href = 'https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@400;700&display=swap';
+    link.rel = 'stylesheet';
+    document.head.appendChild(link);
+  }, []);
+
+  // 讀取本地儲存的資料 (供單機測試用)
+  useEffect(() => {
+    const saved = localStorage.getItem('schoolSchedules');
+    if (saved) {
+      try {
+        setScheduleData(JSON.parse(saved));
+      } catch (e) {
+        console.error("載入資料失敗", e);
+      }
+    }
+  }, []);
+
+  const handleCellChange = (slotId, dayIndex, value) => {
+    const newEntityData = {
+      ...(scheduleData[selectedEntity] || {}),
+      [`${slotId}_${dayIndex}`]: value
+    };
+    const newData = { ...scheduleData, [selectedEntity]: newEntityData };
+    setScheduleData(newData);
+    localStorage.setItem('schoolSchedules', JSON.stringify(newData));
+  };
+
   const getCellValue = (slotId, dayIndex) => {
     return scheduleData[selectedEntity]?.[`${slotId}_${dayIndex}`] || "";
   };
 
+  const toggleMenu = (menu) => {
+    setOpenMenu(openMenu === menu ? null : menu);
+  };
+
   const selectEntity = (entity) => {
     setSelectedEntity(entity);
+    setOpenMenu(null);
   };
 
   const handleHiddenLogin = () => {
     if (!isAdmin) {
-// ... existing code ...
+      const pwd = prompt("請輸入組長後台密碼：");
+      if (pwd === "lee09110911") {
+        setIsAdmin(true);
+        alert("已進入編輯模式！您可以點擊格子輸入課表。");
+      } else if (pwd !== null) {
+        alert("密碼錯誤");
+      }
+    } else {
+      if(window.confirm("確定要退出編輯模式嗎？")) {
+        setIsAdmin(false);
+      }
+    }
+  };
+
   return (
     <div className="min-h-screen bg-amber-50 pb-12" style={{ fontFamily: "'M PLUS Rounded 1c', sans-serif" }}>
       {/* 頂部導航與下拉選單 */}
       <div className="bg-white shadow-sm sticky top-0 z-50">
         <div className="max-w-3xl mx-auto px-4">
-          <div className="flex gap-4 py-4 justify-center items-center">
-            
-            {/* 導師課表 - 按鈕外觀的下拉選單 */}
-            <div className="relative group">
-              <select
-                className={`appearance-none px-6 py-2 pr-10 rounded-full text-lg font-bold transition-all cursor-pointer outline-none border-2 border-transparent focus:border-amber-400 ${
-                  Object.values(homeroomClasses).flat().includes(selectedEntity) ? 'bg-amber-400 text-amber-900 shadow-md' : 'bg-amber-100 text-amber-700 hover:bg-amber-200'
-                }`}
-                value={Object.values(homeroomClasses).flat().includes(selectedEntity) ? selectedEntity : "default"}
-                onChange={(e) => selectEntity(e.target.value)}
-              >
-                <option value="default" disabled>導師課表</option>
-                {Object.entries(homeroomClasses).map(([grade, classes]) => (
-                  <optgroup key={grade} label={grade}>
-                    {classes.map(cls => (
-                      <option key={cls} value={cls}>{cls} 班</option>
-                    ))}
-                  </optgroup>
-                ))}
-              </select>
-              {/* 模擬按鈕右側的下箭頭 */}
-              <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 font-bold text-amber-800">
-                ▼
-              </div>
-            </div>
-
-            {/* 科任課表 - 按鈕外觀的下拉選單 */}
-            <div className="relative group">
-              <select
-                className={`appearance-none px-6 py-2 pr-10 rounded-full text-lg font-bold transition-all cursor-pointer outline-none border-2 border-transparent focus:border-emerald-400 ${
-                  Object.values(subjectOffices).flat().includes(selectedEntity) ? 'bg-emerald-400 text-emerald-900 shadow-md' : 'bg-emerald-100 text-emerald-700 hover:bg-emerald-200'
-                }`}
-                value={Object.values(subjectOffices).flat().includes(selectedEntity) ? selectedEntity : "default"}
-                onChange={(e) => selectEntity(e.target.value)}
-              >
-                <option value="default" disabled>科任課表</option>
-                {Object.entries(subjectOffices).map(([office, teachers]) => (
-                  <optgroup key={office} label={office}>
-                    {teachers.map(teacher => (
-                      <option key={teacher} value={teacher}>{teacher}</option>
-                    ))}
-                  </optgroup>
-                ))}
-              </select>
-              {/* 模擬按鈕右側的下箭頭 */}
-              <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 font-bold text-emerald-800">
-                ▼
-              </div>
-            </div>
-
+          <div className="flex gap-4 py-3 justify-center">
+            <button 
+              onClick={() => toggleMenu('homeroom')}
+              className={`px-6 py-2 rounded-full text-lg font-bold transition-colors ${openMenu === 'homeroom' ? 'bg-amber-400 text-amber-900' : 'bg-amber-100 text-amber-700 hover:bg-amber-200'}`}
+            >
+              導師課表 {openMenu === 'homeroom' ? '▲' : '▼'}
+            </button>
+            <button 
+              onClick={() => toggleMenu('subject')}
+              className={`px-6 py-2 rounded-full text-lg font-bold transition-colors ${openMenu === 'subject' ? 'bg-emerald-400 text-emerald-900' : 'bg-emerald-100 text-emerald-700 hover:bg-emerald-200'}`}
+            >
+              科任課表 {openMenu === 'subject' ? '▲' : '▼'}
+            </button>
           </div>
+
+          {/* 導師選單內容 */}
+          {openMenu === 'homeroom' && (
+            <div className="py-4 border-t border-gray-100 animate-fade-in">
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+                {Object.entries(homeroomClasses).map(([grade, classes]) => (
+                  <div key={grade} className="bg-amber-50 p-3 rounded-xl">
+                    <div className="font-bold text-amber-800 mb-2 border-b border-amber-200 pb-1">{grade}</div>
+                    <div className="flex flex-wrap gap-2">
+                      {classes.map(cls => (
+                        <button
+                          key={cls}
+                          onClick={() => selectEntity(cls)}
+                          className={`px-3 py-1 rounded-lg text-sm font-bold transition-colors ${selectedEntity === cls ? 'bg-amber-500 text-white shadow-md' : 'bg-white text-amber-700 hover:bg-amber-200 border border-amber-200'}`}
+                        >
+                          {cls}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* 科任選單內容 */}
+          {openMenu === 'subject' && (
+            <div className="py-4 border-t border-gray-100 animate-fade-in">
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+                {Object.entries(subjectOffices).map(([office, teachers]) => (
+                  <div key={office} className="bg-emerald-50 p-3 rounded-xl">
+                    <div className="font-bold text-emerald-800 mb-2 border-b border-emerald-200 pb-1">{office}</div>
+                    <div className="flex flex-wrap gap-2">
+                      {teachers.map(teacher => (
+                        <button
+                          key={teacher}
+                          onClick={() => selectEntity(teacher)}
+                          className={`px-3 py-1 rounded-lg text-sm font-bold transition-colors ${selectedEntity === teacher ? 'bg-emerald-500 text-white shadow-md' : 'bg-white text-emerald-700 hover:bg-emerald-200 border border-emerald-200'}`}
+                        >
+                          {teacher}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
       </div>
 
       {/* A4 課表主體 (設定 max-w-[210mm] 等比例) */}
       <div className="mt-8 max-w-[210mm] min-h-[297mm] mx-auto bg-white p-6 sm:p-10 shadow-xl rounded-sm">
-// ... existing code ...
+        
+        {/* 標題與編輯提示 */}
+        <div className="text-center mb-6">
+          <h1 className="text-3xl font-bold text-gray-800 tracking-wider">
+            {selectedEntity} 課表
+          </h1>
+          {isAdmin && (
+            <div className="mt-2 text-sm text-red-500 bg-red-50 inline-block px-4 py-1 rounded-full animate-pulse">
+              ✏️ 目前為編輯模式，請直接點擊表格輸入內容
+            </div>
+          )}
+        </div>
+
         {/* 課表表格 */}
         <div className="overflow-x-auto">
           <table className="w-full border-collapse border-2 border-slate-700 text-center table-fixed">
@@ -138,15 +242,12 @@ export default function App() {
         </div>
       </div>
 
-      {/* 隱藏的密碼按鈕 - 最右下角，滑過顯示鎖頭，點兩下觸發 */}
+      {/* 隱藏的密碼按鈕 - 最右下角，完全透明，點兩下觸發 */}
       <div 
-        className="fixed bottom-0 right-0 w-16 h-16 z-50 flex items-end justify-end group cursor-default"
+        className="fixed bottom-0 right-0 w-12 h-12 z-50 cursor-default"
+        title=" " 
         onDoubleClick={handleHiddenLogin}
-      >
-        <div className="w-12 h-12 m-2 flex items-center justify-center bg-black/10 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-          <span className="text-2xl" title="雙擊進入後台">🔒</span>
-        </div>
-      </div>
+      />
     </div>
   );
 }
