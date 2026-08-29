@@ -1,70 +1,67 @@
 <!-- ... existing code ... -->
-  <!-- A4 課表呈現區 -->
-  <div class="a4-container">
-    
-    <!-- 學校總標題 -->
-    <div class="text-center mb-4 w-full">
-      <h1 class="text-[26px] sm:text-3xl md:text-4xl font-bold text-gray-800 whitespace-nowrap tracking-wider">高雄市小港區二苓國小115學年度課表</h1>
-    </div>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=850">
+  
+  <!-- === 將網頁加入手機桌面捷徑 (Web App) 專用設定 === -->
+  <!-- 讓 iOS 加入主畫面後隱藏網址列，全螢幕呈現 -->
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <!-- 設定 iOS 頂部狀態列的顏色融合 -->
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <!-- 設定加入主畫面時預設的 APP 捷徑名稱 -->
+  <meta name="apple-mobile-web-app-title" content="二苓課表">
+  <!-- 讓 Android 加入主畫面後隱藏網址列 -->
+  <meta name="mobile-web-app-capable" content="yes">
+  <!-- 設定 Android 狀態列顏色與網頁底色一致 -->
+  <meta name="theme-color" content="#fffdfa">
+  
+  <!-- 桌面捷徑的專屬 APP 圖示 (設計為可愛的橘色日曆) -->
+  <link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' fill='%23ffd8b1' rx='20'/%3E%3Ctext x='50' y='55' font-size='50' text-anchor='middle' dominant-baseline='central'%3E%F0%9F%93%85%3C/text%3E%3C/svg%3E">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='1em' font-size='80'%3E%F0%9F%93%85%3C/text%3E%3C/svg%3E">
 
-    <!-- 控制面板 (整合進 A4 紙張內，列印時隱藏) -->
-    <div class="no-print flex flex-row gap-4 items-end justify-center mb-6">
-      
-      <!-- 身份選擇 -->
-      <div class="flex flex-col gap-1">
-        <label class="text-sm font-semibold text-gray-600 pl-1">請選擇身份</label>
-        <select id="roleSelect" class="w-32 px-4 py-2 bg-orange-50 border-2 border-orange-200 rounded-xl text-orange-900 focus:outline-none focus:border-orange-400 focus:ring-2 ring-orange-100 text-lg">
-          <option value="導師">導師</option>
-          <option value="科任">科任</option>
-        </select>
-      </div>
-
-      <!-- 導師：班級選擇 -->
-      <div id="classSelectWrapper" class="flex flex-col gap-1">
-        <label class="text-sm font-semibold text-gray-600 pl-1">請選擇班級</label>
-        <select id="classSelect" class="w-40 px-4 py-2 bg-green-50 border-2 border-green-200 rounded-xl text-green-900 focus:outline-none focus:border-green-400 focus:ring-2 ring-green-100 text-lg">
-          <!-- JS 動態生成 -->
-        </select>
-      </div>
-
-      <!-- 科任：處室選擇 -->
-      <div id="deptSelectWrapper" class="flex flex-col gap-1 hidden">
-        <label class="text-sm font-semibold text-gray-600 pl-1">請選擇處室</label>
-        <select id="deptSelect" class="w-40 px-4 py-2 bg-blue-50 border-2 border-blue-200 rounded-xl text-blue-900 focus:outline-none focus:border-blue-400 focus:ring-2 ring-blue-100 text-lg">
-          <option value="教務處">教務處</option>
-          <option value="學務處">學務處</option>
-          <option value="總務處">總務處</option>
-          <option value="輔導室">輔導室</option>
-          <option value="純科任">純科任</option>
-        </select>
-      </div>
-
-      <!-- 科任：教師選擇 -->
-      <div id="teacherSelectWrapper" class="flex flex-col gap-1 hidden">
-        <label class="text-sm font-semibold text-gray-600 pl-1">請選擇教師</label>
-        <select id="teacherSelect" class="w-48 px-4 py-2 bg-purple-50 border-2 border-purple-200 rounded-xl text-purple-900 focus:outline-none focus:border-purple-400 focus:ring-2 ring-purple-100 text-lg">
-          <!-- JS 動態生成 -->
-        </select>
-      </div>
-
-    </div>
-
-    <div class="text-center mb-4">
-      <h2 id="scheduleTitle" class="text-4xl font-bold text-gray-800 tracking-wider">一年1班</h2>
-    </div>
-
-    <!-- 移除原本的左右滑動外框，讓表格直接呈現 -->
-    <table>
+  <title>學校課表查詢系統</title>
+  <!-- 引入 Tailwind CSS 快速排版 -->
+  <script src="https://cdn.tailwindcss.com"></script>
 <!-- ... existing code ... -->
-    // 更新課表標題
-    function updateTitle() {
-      if (roleSelect.value === '導師') {
-        scheduleTitle.textContent = `${classSelect.value}`;
-      } else {
-        scheduleTitle.textContent = `${teacherSelect.value}`;
-      }
-      renderSchedule(); // 重新渲染表格內容
+  <link href="https://fonts.googleapis.com/css2?family=Klee+One:wght@400;600&display=swap" rel="stylesheet">
+  
+  <style>
+    /* 全域套用可愛字體 */
+    body {
+      font-family: 'Klee One', cursive;
+      background-color: #fffdfa !important; /* 改為溫暖的米白色全螢幕背景 */
+      color: #4a4a4a;
+      margin: 0;
+      padding: 10px !important;
     }
 
-    // 繪製課表框架
+    /* 移除 A4 限制，改為全螢幕自適應滿版容器 */
+    .a4-container {
+      width: 100%;
+      max-width: 830px; /* 對應 viewport，保持兩側剛剛好的邊距 */
+      margin: 0 auto;
+      /* 已移除原本 A4 的白色背景框與陰影限制 */
+    }
+
+    /* 可愛的表格樣式 */
+    table {
+<!-- ... existing code ... -->
+    /* 列印時隱藏控制項，確保印出來是乾淨的 A4 */
+    @media print {
+      body { background: white !important; }
+      .no-print { display: none !important; }
+      .a4-container {
+        padding: 0;
+        margin: 0;
+        max-width: none;
+      }
+      td { border: 1px solid #d3d3d3; background-color: transparent !important; }
+      td, th { break-inside: avoid; }
+    }
+  </style>
+</head>
+<body class="p-4 md:p-8">
+
+  <!-- 課表呈現區 (滿版設計) -->
+  <div class="a4-container">
 <!-- ... existing code ... -->
