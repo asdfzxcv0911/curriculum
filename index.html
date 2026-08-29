@@ -41,7 +41,7 @@
     /* 可愛的表格樣式 */
     table {
       width: 100%;
-      min-width: 650px; /* 確保手機版時格子不會擠成一團，保持版面配置 */
+      min-width: 680px; /* 稍微加寬，確保大字體在手機上不會擠成一團 */
       border-collapse: separate;
       border-spacing: 4px; /* 讓格子之間有點空隙，看起來比較可愛 */
       margin-top: 20px;
@@ -53,20 +53,22 @@
       font-weight: 600;
       padding: 12px 8px;
       border-radius: 10px;
-      font-size: 1.1rem;
+      font-size: 1.25rem; /* 加大表頭字體 */
     }
 
     td {
       background-color: #fff9f2;
       border: 2px dashed #f0d5b6; /* 虛線邊框增加活潑感 */
       text-align: center;
-      padding: 10px 4px;
+      padding: 12px 4px; /* 增加留白 */
       border-radius: 10px;
-      height: 60px; /* 確保每節課的高度足夠 */
+      height: 75px; /* 加大高度以容納更大的字體 */
       vertical-align: middle;
       font-weight: 600;
       color: #5c4033;
       transition: all 0.2s;
+      font-size: 1.25rem; /* 加大科目字體 */
+      white-space: nowrap; /* 強制不換行，避免科目跨行 */
     }
 
     td:hover {
@@ -78,7 +80,7 @@
       background-color: #dcedc8; /* 時間欄用柔和的綠色 */
       border: none;
       color: #33691e;
-      font-size: 0.95rem;
+      font-size: 1.1rem; /* 加大時間字體 */
       line-height: 1.4;
     }
 
@@ -87,7 +89,7 @@
       border: none;
       color: #01579b;
       letter-spacing: 5px;
-      font-size: 1.2rem;
+      font-size: 1.4rem; /* 加大午休字體 */
     }
 
     /* 對角線表頭樣式 */
@@ -100,14 +102,14 @@
       position: absolute;
       top: 4px;
       right: 12px;
-      font-size: 0.95rem;
+      font-size: 1.1rem; /* 加大字體 */
       font-weight: 600;
     }
     .diagonal-split .bottom-left {
       position: absolute;
       bottom: 4px;
       left: 12px;
-      font-size: 0.95rem;
+      font-size: 1.1rem; /* 加大字體 */
       font-weight: 600;
     }
 
@@ -139,18 +141,16 @@
 </head>
 <body class="p-4 md:p-8">
 
-  <!-- 控制面板 (下拉選單區 - 列印時隱藏) -->
-  <div class="no-print max-w-[210mm] mx-auto bg-white rounded-2xl shadow-sm border-2 border-orange-100 p-6 mb-6">
-    <h2 class="text-2xl font-bold text-orange-800 mb-4 flex items-center gap-2">
-      <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-orange-500"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20"/></svg>
-      課表查詢系統
-    </h2>
-    <div class="flex flex-wrap gap-4 items-end">
+  <!-- A4 課表呈現區 -->
+  <div class="a4-container">
+    
+    <!-- 控制面板 (整合進 A4 紙張內，列印時隱藏) -->
+    <div class="no-print flex flex-wrap gap-4 items-end justify-center mb-8 pb-6 border-b-2 border-dashed border-gray-200">
       
       <!-- 身份選擇 -->
       <div class="flex flex-col gap-1 w-full sm:w-auto">
         <label class="text-sm font-semibold text-gray-600 pl-1">請選擇身份</label>
-        <select id="roleSelect" class="w-full sm:w-40 px-4 py-2 bg-orange-50 border-2 border-orange-200 rounded-xl text-orange-900 focus:outline-none focus:border-orange-400 focus:ring-2 ring-orange-100">
+        <select id="roleSelect" class="w-full sm:w-40 px-4 py-2 bg-orange-50 border-2 border-orange-200 rounded-xl text-orange-900 focus:outline-none focus:border-orange-400 focus:ring-2 ring-orange-100 text-lg">
           <option value="導師">導師 (班級)</option>
           <option value="科任">科任教師</option>
         </select>
@@ -159,7 +159,7 @@
       <!-- 導師：班級選擇 -->
       <div id="classSelectWrapper" class="flex flex-col gap-1 w-full sm:w-auto">
         <label class="text-sm font-semibold text-gray-600 pl-1">請選擇班級</label>
-        <select id="classSelect" class="w-full sm:w-40 px-4 py-2 bg-green-50 border-2 border-green-200 rounded-xl text-green-900 focus:outline-none focus:border-green-400 focus:ring-2 ring-green-100">
+        <select id="classSelect" class="w-full sm:w-40 px-4 py-2 bg-green-50 border-2 border-green-200 rounded-xl text-green-900 focus:outline-none focus:border-green-400 focus:ring-2 ring-green-100 text-lg">
           <!-- JS 動態生成 -->
         </select>
       </div>
@@ -167,7 +167,7 @@
       <!-- 科任：處室選擇 -->
       <div id="deptSelectWrapper" class="flex flex-col gap-1 w-full sm:w-auto hidden">
         <label class="text-sm font-semibold text-gray-600 pl-1">請選擇處室</label>
-        <select id="deptSelect" class="w-full sm:w-40 px-4 py-2 bg-blue-50 border-2 border-blue-200 rounded-xl text-blue-900 focus:outline-none focus:border-blue-400 focus:ring-2 ring-blue-100">
+        <select id="deptSelect" class="w-full sm:w-40 px-4 py-2 bg-blue-50 border-2 border-blue-200 rounded-xl text-blue-900 focus:outline-none focus:border-blue-400 focus:ring-2 ring-blue-100 text-lg">
           <option value="教務處">教務處</option>
           <option value="學務處">學務處</option>
           <option value="總務處">總務處</option>
@@ -179,16 +179,13 @@
       <!-- 科任：教師選擇 -->
       <div id="teacherSelectWrapper" class="flex flex-col gap-1 w-full sm:w-auto hidden">
         <label class="text-sm font-semibold text-gray-600 pl-1">請選擇教師</label>
-        <select id="teacherSelect" class="w-full sm:w-48 px-4 py-2 bg-purple-50 border-2 border-purple-200 rounded-xl text-purple-900 focus:outline-none focus:border-purple-400 focus:ring-2 ring-purple-100">
+        <select id="teacherSelect" class="w-full sm:w-48 px-4 py-2 bg-purple-50 border-2 border-purple-200 rounded-xl text-purple-900 focus:outline-none focus:border-purple-400 focus:ring-2 ring-purple-100 text-lg">
           <!-- JS 動態生成 -->
         </select>
       </div>
 
     </div>
-  </div>
 
-  <!-- A4 課表呈現區 -->
-  <div class="a4-container">
     <div class="text-center mb-6">
       <h1 id="scheduleTitle" class="text-4xl font-bold text-gray-800 tracking-wider">一年1班 課表</h1>
       <p class="text-gray-500 mt-2 text-lg">115學年度上學期</p>
@@ -231,22 +228,22 @@
     // --- 課表真實資料儲存區 ---
     const classSchedules = {
       '一年1班': [
-        // 第一節
-        ['國語<br><span class="text-xs text-gray-500">徐淑卿</span>', '國語<br><span class="text-xs text-gray-500">徐淑卿</span>', '國語<br><span class="text-xs text-gray-500">徐淑卿</span>', '國語<br><span class="text-xs text-gray-500">徐淑卿</span>', '國語<br><span class="text-xs text-gray-500">徐淑卿</span>'],
+        // 第一節 (字體從 text-xs 加大為 text-sm，並加入 font-normal 讓老師姓名不那麼粗體)
+        ['國語<br><span class="text-sm text-gray-500 font-normal">徐淑卿</span>', '國語<br><span class="text-sm text-gray-500 font-normal">徐淑卿</span>', '國語<br><span class="text-sm text-gray-500 font-normal">徐淑卿</span>', '國語<br><span class="text-sm text-gray-500 font-normal">徐淑卿</span>', '國語<br><span class="text-sm text-gray-500 font-normal">徐淑卿</span>'],
         // 第二節
-        ['數學<br><span class="text-xs text-gray-500">徐淑卿</span>', '數學<br><span class="text-xs text-gray-500">徐淑卿</span>', '數學<br><span class="text-xs text-gray-500">徐淑卿</span>', '健康<br><span class="text-xs text-gray-500">邱子芸</span>', '數學<br><span class="text-xs text-gray-500">徐淑卿</span>'],
+        ['數學<br><span class="text-sm text-gray-500 font-normal">徐淑卿</span>', '數學<br><span class="text-sm text-gray-500 font-normal">徐淑卿</span>', '數學<br><span class="text-sm text-gray-500 font-normal">徐淑卿</span>', '健康<br><span class="text-sm text-gray-500 font-normal">邱子芸</span>', '數學<br><span class="text-sm text-gray-500 font-normal">徐淑卿</span>'],
         // 第三節
-        ['彈英<br><span class="text-xs text-gray-500">盧岱岑</span>', '體育<br><span class="text-xs text-gray-500">李柏勳</span>', '生活<br><span class="text-xs text-gray-500">李柏勳</span>', '體育<br><span class="text-xs text-gray-500">李柏勳</span>', '土本語<br><span class="text-xs text-gray-500">葉玟孝</span>'],
+        ['彈英<br><span class="text-sm text-gray-500 font-normal">盧岱岑</span>', '體育<br><span class="text-sm text-gray-500 font-normal">李柏勳</span>', '生活<br><span class="text-sm text-gray-500 font-normal">李柏勳</span>', '體育<br><span class="text-sm text-gray-500 font-normal">李柏勳</span>', '土本語<br><span class="text-sm text-gray-500 font-normal">葉玟孝</span>'],
         // 第四節
-        ['彈性<br><span class="text-xs text-gray-500">徐淑卿</span>', '生活<br><span class="text-xs text-gray-500">徐淑卿</span>', '國語<br><span class="text-xs text-gray-500">徐淑卿</span>', '生活<br><span class="text-xs text-gray-500">徐淑卿</span>', '生活<br><span class="text-xs text-gray-500">徐淑卿</span>'],
+        ['彈性<br><span class="text-sm text-gray-500 font-normal">徐淑卿</span>', '生活<br><span class="text-sm text-gray-500 font-normal">徐淑卿</span>', '國語<br><span class="text-sm text-gray-500 font-normal">徐淑卿</span>', '生活<br><span class="text-sm text-gray-500 font-normal">徐淑卿</span>', '生活<br><span class="text-sm text-gray-500 font-normal">徐淑卿</span>'],
         // 中午 (合併處理)
         [], 
         // 第五節
-        ['', '生活<br><span class="text-xs text-gray-500">李柏勳</span>', '', '', ''],
+        ['', '生活<br><span class="text-sm text-gray-500 font-normal">李柏勳</span>', '', '', ''],
         // 第六節
-        ['', '生活<br><span class="text-xs text-gray-500">徐淑卿</span>', '', '', ''],
+        ['', '生活<br><span class="text-sm text-gray-500 font-normal">徐淑卿</span>', '', '', ''],
         // 第七節
-        ['', '彈性<br><span class="text-xs text-gray-500">徐淑卿</span>', '', '', '']
+        ['', '彈性<br><span class="text-sm text-gray-500 font-normal">徐淑卿</span>', '', '', '']
       ]
     };
 
