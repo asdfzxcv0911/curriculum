@@ -1,0 +1,152 @@
+// ... existing code ...
+export default function App() {
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [selectedEntity, setSelectedEntity] = useState("101");
+  const [scheduleData, setScheduleData] = useState({});
+
+  // 載入字體
+// ... existing code ...
+  const getCellValue = (slotId, dayIndex) => {
+    return scheduleData[selectedEntity]?.[`${slotId}_${dayIndex}`] || "";
+  };
+
+  const selectEntity = (entity) => {
+    setSelectedEntity(entity);
+  };
+
+  const handleHiddenLogin = () => {
+    if (!isAdmin) {
+// ... existing code ...
+  return (
+    <div className="min-h-screen bg-amber-50 pb-12" style={{ fontFamily: "'M PLUS Rounded 1c', sans-serif" }}>
+      {/* 頂部導航與下拉選單 */}
+      <div className="bg-white shadow-sm sticky top-0 z-50">
+        <div className="max-w-3xl mx-auto px-4">
+          <div className="flex gap-4 py-4 justify-center items-center">
+            
+            {/* 導師課表 - 按鈕外觀的下拉選單 */}
+            <div className="relative group">
+              <select
+                className={`appearance-none px-6 py-2 pr-10 rounded-full text-lg font-bold transition-all cursor-pointer outline-none border-2 border-transparent focus:border-amber-400 ${
+                  Object.values(homeroomClasses).flat().includes(selectedEntity) ? 'bg-amber-400 text-amber-900 shadow-md' : 'bg-amber-100 text-amber-700 hover:bg-amber-200'
+                }`}
+                value={Object.values(homeroomClasses).flat().includes(selectedEntity) ? selectedEntity : "default"}
+                onChange={(e) => selectEntity(e.target.value)}
+              >
+                <option value="default" disabled>導師課表</option>
+                {Object.entries(homeroomClasses).map(([grade, classes]) => (
+                  <optgroup key={grade} label={grade}>
+                    {classes.map(cls => (
+                      <option key={cls} value={cls}>{cls} 班</option>
+                    ))}
+                  </optgroup>
+                ))}
+              </select>
+              {/* 模擬按鈕右側的下箭頭 */}
+              <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 font-bold text-amber-800">
+                ▼
+              </div>
+            </div>
+
+            {/* 科任課表 - 按鈕外觀的下拉選單 */}
+            <div className="relative group">
+              <select
+                className={`appearance-none px-6 py-2 pr-10 rounded-full text-lg font-bold transition-all cursor-pointer outline-none border-2 border-transparent focus:border-emerald-400 ${
+                  Object.values(subjectOffices).flat().includes(selectedEntity) ? 'bg-emerald-400 text-emerald-900 shadow-md' : 'bg-emerald-100 text-emerald-700 hover:bg-emerald-200'
+                }`}
+                value={Object.values(subjectOffices).flat().includes(selectedEntity) ? selectedEntity : "default"}
+                onChange={(e) => selectEntity(e.target.value)}
+              >
+                <option value="default" disabled>科任課表</option>
+                {Object.entries(subjectOffices).map(([office, teachers]) => (
+                  <optgroup key={office} label={office}>
+                    {teachers.map(teacher => (
+                      <option key={teacher} value={teacher}>{teacher}</option>
+                    ))}
+                  </optgroup>
+                ))}
+              </select>
+              {/* 模擬按鈕右側的下箭頭 */}
+              <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 font-bold text-emerald-800">
+                ▼
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </div>
+
+      {/* A4 課表主體 (設定 max-w-[210mm] 等比例) */}
+      <div className="mt-8 max-w-[210mm] min-h-[297mm] mx-auto bg-white p-6 sm:p-10 shadow-xl rounded-sm">
+// ... existing code ...
+        {/* 課表表格 */}
+        <div className="overflow-x-auto">
+          <table className="w-full border-collapse border-2 border-slate-700 text-center table-fixed">
+            <thead>
+              <tr className="bg-slate-100 border-2 border-slate-700">
+                <th className="border border-slate-400 py-3 w-[16.66%] text-slate-700">節次 / 時間</th>
+                {days.map(day => (
+                  <th key={day} className="border border-slate-400 py-3 w-[16.66%] text-slate-700 font-bold text-lg">
+                    {day}
+                  </th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {timeSlots.map((slot) => {
+                // 處理午休合併儲存格
+                if (slot.isBreak) {
+                  return (
+                    <tr key={slot.id} className="bg-emerald-50">
+                      <td className="border border-slate-400 py-2 font-bold text-emerald-800 whitespace-pre-line text-sm">
+                        {slot.name}{'\n'}{slot.time}
+                      </td>
+                      <td colSpan={5} className="border border-slate-400 py-2 font-bold text-emerald-800 tracking-widest text-lg">
+                        午 餐 與 午 休 時 間
+                      </td>
+                    </tr>
+                  );
+                }
+
+                // 正常節次
+                return (
+                  <tr key={slot.id}>
+                    <td className="border border-slate-400 py-3 font-bold text-slate-700 whitespace-pre-line text-sm">
+                      {slot.name}{'\n'}{slot.time}
+                    </td>
+                    {days.map((day, index) => (
+                      <td key={index} className="border border-slate-400 p-0 relative h-16 sm:h-20 align-top">
+                        {isAdmin ? (
+                          <textarea
+                            className="w-full h-full min-h-[4rem] p-1 sm:p-2 resize-none outline-none focus:ring-2 focus:ring-amber-400 bg-amber-50 border-none text-center"
+                            value={getCellValue(slot.id, index)}
+                            onChange={(e) => handleCellChange(slot.id, index, e.target.value)}
+                            placeholder="點此輸入"
+                          />
+                        ) : (
+                          <div className="w-full h-full min-h-[4rem] p-1 sm:p-2 whitespace-pre-wrap flex items-center justify-center text-gray-800 font-medium">
+                            {getCellValue(slot.id, index)}
+                          </div>
+                        )}
+                      </td>
+                    ))}
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      {/* 隱藏的密碼按鈕 - 最右下角，滑過顯示鎖頭，點兩下觸發 */}
+      <div 
+        className="fixed bottom-0 right-0 w-16 h-16 z-50 flex items-end justify-end group cursor-default"
+        onDoubleClick={handleHiddenLogin}
+      >
+        <div className="w-12 h-12 m-2 flex items-center justify-center bg-black/10 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+          <span className="text-2xl" title="雙擊進入後台">🔒</span>
+        </div>
+      </div>
+    </div>
+  );
+}
