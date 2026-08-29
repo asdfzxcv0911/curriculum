@@ -2,7 +2,8 @@
 <html lang="zh-TW">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <!-- 修改 Viewport 設定：強制指定寬度為 850，讓手機自動縮小至全螢幕，並允許使用者自行雙指放大 -->
+  <meta name="viewport" content="width=850, user-scalable=yes">
   <title>學校課表查詢系統</title>
   <!-- 引入 Tailwind CSS 快速排版 -->
   <script src="https://cdn.tailwindcss.com"></script>
@@ -31,17 +32,10 @@
       border-radius: 12px;
     }
 
-    /* 手機版適應：縮小邊距，保留更多空間給表格 */
-    @media (max-width: 768px) {
-      .a4-container {
-        padding: 4mm 2mm;
-      }
-    }
-
     /* 可愛的表格樣式 */
     table {
       width: 100%;
-      min-width: 680px; /* 稍微加寬，確保大字體在手機上不會擠成一團 */
+      min-width: 680px; /* 稍微加寬，確保大字體不會擠成一團 */
       border-collapse: separate;
       border-spacing: 4px; /* 讓格子之間有點空隙，看起來比較可愛 */
       margin-top: 20px;
@@ -145,29 +139,29 @@
   <div class="a4-container">
     
     <!-- 控制面板 (整合進 A4 紙張內，列印時隱藏) -->
-    <div class="no-print flex flex-wrap gap-4 items-end justify-center mb-8 pb-6 border-b-2 border-dashed border-gray-200">
+    <div class="no-print flex flex-row gap-4 items-end justify-center mb-6">
       
       <!-- 身份選擇 -->
-      <div class="flex flex-col gap-1 w-full sm:w-auto">
+      <div class="flex flex-col gap-1">
         <label class="text-sm font-semibold text-gray-600 pl-1">請選擇身份</label>
-        <select id="roleSelect" class="w-full sm:w-40 px-4 py-2 bg-orange-50 border-2 border-orange-200 rounded-xl text-orange-900 focus:outline-none focus:border-orange-400 focus:ring-2 ring-orange-100 text-lg">
-          <option value="導師">導師 (班級)</option>
-          <option value="科任">科任教師</option>
+        <select id="roleSelect" class="w-32 px-4 py-2 bg-orange-50 border-2 border-orange-200 rounded-xl text-orange-900 focus:outline-none focus:border-orange-400 focus:ring-2 ring-orange-100 text-lg">
+          <option value="導師">導師</option>
+          <option value="科任">科任</option>
         </select>
       </div>
 
       <!-- 導師：班級選擇 -->
-      <div id="classSelectWrapper" class="flex flex-col gap-1 w-full sm:w-auto">
+      <div id="classSelectWrapper" class="flex flex-col gap-1">
         <label class="text-sm font-semibold text-gray-600 pl-1">請選擇班級</label>
-        <select id="classSelect" class="w-full sm:w-40 px-4 py-2 bg-green-50 border-2 border-green-200 rounded-xl text-green-900 focus:outline-none focus:border-green-400 focus:ring-2 ring-green-100 text-lg">
+        <select id="classSelect" class="w-40 px-4 py-2 bg-green-50 border-2 border-green-200 rounded-xl text-green-900 focus:outline-none focus:border-green-400 focus:ring-2 ring-green-100 text-lg">
           <!-- JS 動態生成 -->
         </select>
       </div>
 
       <!-- 科任：處室選擇 -->
-      <div id="deptSelectWrapper" class="flex flex-col gap-1 w-full sm:w-auto hidden">
+      <div id="deptSelectWrapper" class="flex flex-col gap-1 hidden">
         <label class="text-sm font-semibold text-gray-600 pl-1">請選擇處室</label>
-        <select id="deptSelect" class="w-full sm:w-40 px-4 py-2 bg-blue-50 border-2 border-blue-200 rounded-xl text-blue-900 focus:outline-none focus:border-blue-400 focus:ring-2 ring-blue-100 text-lg">
+        <select id="deptSelect" class="w-40 px-4 py-2 bg-blue-50 border-2 border-blue-200 rounded-xl text-blue-900 focus:outline-none focus:border-blue-400 focus:ring-2 ring-blue-100 text-lg">
           <option value="教務處">教務處</option>
           <option value="學務處">學務處</option>
           <option value="總務處">總務處</option>
@@ -177,9 +171,9 @@
       </div>
 
       <!-- 科任：教師選擇 -->
-      <div id="teacherSelectWrapper" class="flex flex-col gap-1 w-full sm:w-auto hidden">
+      <div id="teacherSelectWrapper" class="flex flex-col gap-1 hidden">
         <label class="text-sm font-semibold text-gray-600 pl-1">請選擇教師</label>
-        <select id="teacherSelect" class="w-full sm:w-48 px-4 py-2 bg-purple-50 border-2 border-purple-200 rounded-xl text-purple-900 focus:outline-none focus:border-purple-400 focus:ring-2 ring-purple-100 text-lg">
+        <select id="teacherSelect" class="w-48 px-4 py-2 bg-purple-50 border-2 border-purple-200 rounded-xl text-purple-900 focus:outline-none focus:border-purple-400 focus:ring-2 ring-purple-100 text-lg">
           <!-- JS 動態生成 -->
         </select>
       </div>
@@ -187,31 +181,29 @@
     </div>
 
     <div class="text-center mb-6">
-      <h1 id="scheduleTitle" class="text-4xl font-bold text-gray-800 tracking-wider">一年1班 課表</h1>
+      <h1 id="scheduleTitle" class="text-4xl font-bold text-gray-800 tracking-wider">一年1班</h1>
       <p class="text-gray-500 mt-2 text-lg">115學年度上學期</p>
     </div>
 
-    <!-- 增加 overflow-x-auto 讓手機版可以左右滑動觀看，不會擠壓變形 -->
-    <div class="overflow-x-auto pb-4">
-      <table>
-        <thead>
-          <tr>
-            <th class="diagonal-split" style="width: 16%; height: 60px;">
-              <span class="top-right">節次</span>
-              <span class="bottom-left">時間</span>
-            </th>
-            <th style="width: 16.8%;">星期一</th>
-            <th style="width: 16.8%;">星期二</th>
-            <th style="width: 16.8%;">星期三</th>
-            <th style="width: 16.8%;">星期四</th>
-            <th style="width: 16.8%;">星期五</th>
-          </tr>
-        </thead>
-        <tbody id="scheduleBody">
-          <!-- 課表內容由 JS 動態生成 -->
-        </tbody>
-      </table>
-    </div>
+    <!-- 移除原本的左右滑動外框，讓表格直接呈現 -->
+    <table>
+      <thead>
+        <tr>
+          <th class="diagonal-split" style="width: 16%; height: 60px;">
+            <span class="top-right">節次</span>
+            <span class="bottom-left">時間</span>
+          </th>
+          <th style="width: 16.8%;">星期一</th>
+          <th style="width: 16.8%;">星期二</th>
+          <th style="width: 16.8%;">星期三</th>
+          <th style="width: 16.8%;">星期四</th>
+          <th style="width: 16.8%;">星期五</th>
+        </tr>
+      </thead>
+      <tbody id="scheduleBody">
+        <!-- 課表內容由 JS 動態生成 -->
+      </tbody>
+    </table>
   </div>
 
   <script>
@@ -302,9 +294,9 @@
     // 更新課表標題
     function updateTitle() {
       if (roleSelect.value === '導師') {
-        scheduleTitle.textContent = `${classSelect.value} 課表`;
+        scheduleTitle.textContent = `${classSelect.value}`;
       } else {
-        scheduleTitle.textContent = `${teacherSelect.value} 課表`;
+        scheduleTitle.textContent = `${teacherSelect.value}`;
       }
       renderSchedule(); // 重新渲染表格內容
     }
