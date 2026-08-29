@@ -1,253 +1,346 @@
-import React, { useState, useEffect } from 'react';
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>學校課表查詢系統</title>
+  <!-- 引入 Tailwind CSS 快速排版 -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- 引入可愛的開源字體 Klee One (具有手寫感且易讀) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Klee+One:wght@400;600&display=swap" rel="stylesheet">
+  
+  <style>
+    /* 全域套用可愛字體 */
+    body {
+      font-family: 'Klee One', cursive;
+      background-color: #f7f3ed; /* 溫暖的背景色 */
+      color: #4a4a4a;
+    }
 
-// --- 資料結構定義 ---
-const homeroomClasses = {
-  "一年級": ["101", "102", "103"],
-  "二年級": ["201", "202", "203"],
-  "三年級": ["301", "302", "303"],
-  "四年級": ["401", "402", "403"],
-  "五年級": ["501", "502", "503", "504"],
-  "六年級": ["601", "602", "603"]
-};
+    /* A4 尺寸設定 (直式) */
+    .a4-container {
+      width: 100%;
+      max-width: 210mm;
+      min-height: 297mm;
+      background: white;
+      margin: 0 auto;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05);
+      padding: 12mm 15mm;
+      border-radius: 12px;
+    }
 
-// 科任佔位名單 (後續可替換為實際老師名稱)
-const subjectOffices = {
-  "教務處": ["教務處老師A", "教務處老師B"],
-  "學務處": ["學務處老師A", "學務處老師B"],
-  "總務處": ["總務處老師A"],
-  "輔導室": ["輔導室老師A", "輔導室老師B"],
-  "純科任": ["自然老師A", "音樂老師B", "美勞老師C"]
-};
-
-const timeSlots = [
-  { id: 'morning', name: '早自習', time: '08:00\n~\n08:25' },
-  { id: 'p1', name: '第一節', time: '08:30\n~\n09:10' },
-  { id: 'p2', name: '第二節', time: '09:20\n~\n10:00' },
-  { id: 'p3', name: '第三節', time: '10:30\n~\n11:10' },
-  { id: 'p4', name: '第四節', time: '11:20\n~\n12:00' },
-  { id: 'noon', name: '午餐午休', time: '12:00\n~\n13:35', isBreak: true },
-  { id: 'p5', name: '第五節', time: '13:40\n~\n14:20' },
-  { id: 'p6', name: '第六節', time: '14:30\n~\n15:10' },
-  { id: 'p7', name: '第七節', time: '15:20\n~\n16:00' }
-];
-
-const days = ['星期一', '星期二', '星期三', '星期四', '星期五'];
-
-export default function App() {
-  const [isAdmin, setIsAdmin] = useState(false);
-  const [selectedEntity, setSelectedEntity] = useState("101");
-  const [openMenu, setOpenMenu] = useState(null);
-  const [scheduleData, setScheduleData] = useState({});
-
-  // 載入字體
-  useEffect(() => {
-    const link = document.createElement('link');
-    link.href = 'https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@400;700&display=swap';
-    link.rel = 'stylesheet';
-    document.head.appendChild(link);
-  }, []);
-
-  // 讀取本地儲存的資料 (供單機測試用)
-  useEffect(() => {
-    const saved = localStorage.getItem('schoolSchedules');
-    if (saved) {
-      try {
-        setScheduleData(JSON.parse(saved));
-      } catch (e) {
-        console.error("載入資料失敗", e);
+    /* 手機版適應：縮小邊距，保留更多空間給表格 */
+    @media (max-width: 768px) {
+      .a4-container {
+        padding: 4mm 2mm;
       }
     }
-  }, []);
 
-  const handleCellChange = (slotId, dayIndex, value) => {
-    const newEntityData = {
-      ...(scheduleData[selectedEntity] || {}),
-      [`${slotId}_${dayIndex}`]: value
-    };
-    const newData = { ...scheduleData, [selectedEntity]: newEntityData };
-    setScheduleData(newData);
-    localStorage.setItem('schoolSchedules', JSON.stringify(newData));
-  };
-
-  const getCellValue = (slotId, dayIndex) => {
-    return scheduleData[selectedEntity]?.[`${slotId}_${dayIndex}`] || "";
-  };
-
-  const toggleMenu = (menu) => {
-    setOpenMenu(openMenu === menu ? null : menu);
-  };
-
-  const selectEntity = (entity) => {
-    setSelectedEntity(entity);
-    setOpenMenu(null);
-  };
-
-  const handleHiddenLogin = () => {
-    if (!isAdmin) {
-      const pwd = prompt("請輸入組長後台密碼：");
-      if (pwd === "lee09110911") {
-        setIsAdmin(true);
-        alert("已進入編輯模式！您可以點擊格子輸入課表。");
-      } else if (pwd !== null) {
-        alert("密碼錯誤");
-      }
-    } else {
-      if(window.confirm("確定要退出編輯模式嗎？")) {
-        setIsAdmin(false);
-      }
+    /* 可愛的表格樣式 */
+    table {
+      width: 100%;
+      min-width: 650px; /* 確保手機版時格子不會擠成一團，保持版面配置 */
+      border-collapse: separate;
+      border-spacing: 4px; /* 讓格子之間有點空隙，看起來比較可愛 */
+      margin-top: 20px;
     }
-  };
 
-  return (
-    <div className="min-h-screen bg-amber-50 pb-12" style={{ fontFamily: "'M PLUS Rounded 1c', sans-serif" }}>
-      {/* 頂部導航與下拉選單 */}
-      <div className="bg-white shadow-sm sticky top-0 z-50">
-        <div className="max-w-3xl mx-auto px-4">
-          <div className="flex gap-4 py-3 justify-center">
-            <button 
-              onClick={() => toggleMenu('homeroom')}
-              className={`px-6 py-2 rounded-full text-lg font-bold transition-colors ${openMenu === 'homeroom' ? 'bg-amber-400 text-amber-900' : 'bg-amber-100 text-amber-700 hover:bg-amber-200'}`}
-            >
-              導師課表 {openMenu === 'homeroom' ? '▲' : '▼'}
-            </button>
-            <button 
-              onClick={() => toggleMenu('subject')}
-              className={`px-6 py-2 rounded-full text-lg font-bold transition-colors ${openMenu === 'subject' ? 'bg-emerald-400 text-emerald-900' : 'bg-emerald-100 text-emerald-700 hover:bg-emerald-200'}`}
-            >
-              科任課表 {openMenu === 'subject' ? '▲' : '▼'}
-            </button>
-          </div>
+    th {
+      background-color: #ffd8b1; /* 柔和的橘黃色表頭 */
+      color: #6d4c41;
+      font-weight: 600;
+      padding: 12px 8px;
+      border-radius: 10px;
+      font-size: 1.1rem;
+    }
 
-          {/* 導師選單內容 */}
-          {openMenu === 'homeroom' && (
-            <div className="py-4 border-t border-gray-100 animate-fade-in">
-              <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
-                {Object.entries(homeroomClasses).map(([grade, classes]) => (
-                  <div key={grade} className="bg-amber-50 p-3 rounded-xl">
-                    <div className="font-bold text-amber-800 mb-2 border-b border-amber-200 pb-1">{grade}</div>
-                    <div className="flex flex-wrap gap-2">
-                      {classes.map(cls => (
-                        <button
-                          key={cls}
-                          onClick={() => selectEntity(cls)}
-                          className={`px-3 py-1 rounded-lg text-sm font-bold transition-colors ${selectedEntity === cls ? 'bg-amber-500 text-white shadow-md' : 'bg-white text-amber-700 hover:bg-amber-200 border border-amber-200'}`}
-                        >
-                          {cls}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
+    td {
+      background-color: #fff9f2;
+      border: 2px dashed #f0d5b6; /* 虛線邊框增加活潑感 */
+      text-align: center;
+      padding: 10px 4px;
+      border-radius: 10px;
+      height: 60px; /* 確保每節課的高度足夠 */
+      vertical-align: middle;
+      font-weight: 600;
+      color: #5c4033;
+      transition: all 0.2s;
+    }
 
-          {/* 科任選單內容 */}
-          {openMenu === 'subject' && (
-            <div className="py-4 border-t border-gray-100 animate-fade-in">
-              <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
-                {Object.entries(subjectOffices).map(([office, teachers]) => (
-                  <div key={office} className="bg-emerald-50 p-3 rounded-xl">
-                    <div className="font-bold text-emerald-800 mb-2 border-b border-emerald-200 pb-1">{office}</div>
-                    <div className="flex flex-wrap gap-2">
-                      {teachers.map(teacher => (
-                        <button
-                          key={teacher}
-                          onClick={() => selectEntity(teacher)}
-                          className={`px-3 py-1 rounded-lg text-sm font-bold transition-colors ${selectedEntity === teacher ? 'bg-emerald-500 text-white shadow-md' : 'bg-white text-emerald-700 hover:bg-emerald-200 border border-emerald-200'}`}
-                        >
-                          {teacher}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-        </div>
+    td:hover {
+      background-color: #ffe4c4;
+      transform: scale(1.02);
+    }
+
+    .time-col {
+      background-color: #dcedc8; /* 時間欄用柔和的綠色 */
+      border: none;
+      color: #33691e;
+      font-size: 0.95rem;
+      line-height: 1.4;
+    }
+
+    .lunch-break {
+      background-color: #b3e5fc; /* 午休用柔和的藍色 */
+      border: none;
+      color: #01579b;
+      letter-spacing: 5px;
+      font-size: 1.2rem;
+    }
+
+    /* 對角線表頭樣式 */
+    .diagonal-split {
+      position: relative;
+      /* 修正斜線方向：改為 to bottom left，畫出來的線就會是左上到右下 (\) */
+      background-image: linear-gradient(to bottom left, transparent calc(50% - 1px), #dcae80 calc(50% - 1px), #dcae80 calc(50% + 1px), transparent calc(50% + 1px));
+    }
+    .diagonal-split .top-right {
+      position: absolute;
+      top: 4px;
+      right: 12px;
+      font-size: 0.95rem;
+      font-weight: 600;
+    }
+    .diagonal-split .bottom-left {
+      position: absolute;
+      bottom: 4px;
+      left: 12px;
+      font-size: 0.95rem;
+      font-weight: 600;
+    }
+
+    /* 下拉選單美化 */
+    select {
+      font-family: 'Klee One', cursive;
+      appearance: none;
+      background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%236d4c41' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+      background-repeat: no-repeat;
+      background-position: right 10px center;
+      background-size: 1em;
+    }
+
+    /* 列印時隱藏控制項，確保印出來是乾淨的 A4 */
+    @media print {
+      body { background: white; }
+      .no-print { display: none !important; }
+      .a4-container {
+        box-shadow: none;
+        padding: 0;
+        margin: 0;
+        max-width: none;
+        border-radius: 0;
+      }
+      td { border: 1px solid #d3d3d3; /* 列印時改為實線比較清晰 */ background-color: transparent !important; }
+      td, th { break-inside: avoid; }
+    }
+  </style>
+</head>
+<body class="p-4 md:p-8">
+
+  <!-- 控制面板 (下拉選單區 - 列印時隱藏) -->
+  <div class="no-print max-w-[210mm] mx-auto bg-white rounded-2xl shadow-sm border-2 border-orange-100 p-6 mb-6">
+    <h2 class="text-2xl font-bold text-orange-800 mb-4 flex items-center gap-2">
+      <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-orange-500"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20"/></svg>
+      課表查詢系統
+    </h2>
+    <div class="flex flex-wrap gap-4 items-end">
+      
+      <!-- 身份選擇 -->
+      <div class="flex flex-col gap-1 w-full sm:w-auto">
+        <label class="text-sm font-semibold text-gray-600 pl-1">請選擇身份</label>
+        <select id="roleSelect" class="w-full sm:w-40 px-4 py-2 bg-orange-50 border-2 border-orange-200 rounded-xl text-orange-900 focus:outline-none focus:border-orange-400 focus:ring-2 ring-orange-100">
+          <option value="導師">導師 (班級)</option>
+          <option value="科任">科任教師</option>
+        </select>
       </div>
 
-      {/* A4 課表主體 (設定 max-w-[210mm] 等比例) */}
-      <div className="mt-8 max-w-[210mm] min-h-[297mm] mx-auto bg-white p-6 sm:p-10 shadow-xl rounded-sm">
-        
-        {/* 標題與編輯提示 */}
-        <div className="text-center mb-6">
-          <h1 className="text-3xl font-bold text-gray-800 tracking-wider">
-            {selectedEntity} 課表
-          </h1>
-          {isAdmin && (
-            <div className="mt-2 text-sm text-red-500 bg-red-50 inline-block px-4 py-1 rounded-full animate-pulse">
-              ✏️ 目前為編輯模式，請直接點擊表格輸入內容
-            </div>
-          )}
-        </div>
-
-        {/* 課表表格 */}
-        <div className="overflow-x-auto">
-          <table className="w-full border-collapse border-2 border-slate-700 text-center table-fixed">
-            <thead>
-              <tr className="bg-slate-100 border-2 border-slate-700">
-                <th className="border border-slate-400 py-3 w-[16.66%] text-slate-700">節次 / 時間</th>
-                {days.map(day => (
-                  <th key={day} className="border border-slate-400 py-3 w-[16.66%] text-slate-700 font-bold text-lg">
-                    {day}
-                  </th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {timeSlots.map((slot) => {
-                // 處理午休合併儲存格
-                if (slot.isBreak) {
-                  return (
-                    <tr key={slot.id} className="bg-emerald-50">
-                      <td className="border border-slate-400 py-2 font-bold text-emerald-800 whitespace-pre-line text-sm">
-                        {slot.name}{'\n'}{slot.time}
-                      </td>
-                      <td colSpan={5} className="border border-slate-400 py-2 font-bold text-emerald-800 tracking-widest text-lg">
-                        午 餐 與 午 休 時 間
-                      </td>
-                    </tr>
-                  );
-                }
-
-                // 正常節次
-                return (
-                  <tr key={slot.id}>
-                    <td className="border border-slate-400 py-3 font-bold text-slate-700 whitespace-pre-line text-sm">
-                      {slot.name}{'\n'}{slot.time}
-                    </td>
-                    {days.map((day, index) => (
-                      <td key={index} className="border border-slate-400 p-0 relative h-16 sm:h-20 align-top">
-                        {isAdmin ? (
-                          <textarea
-                            className="w-full h-full min-h-[4rem] p-1 sm:p-2 resize-none outline-none focus:ring-2 focus:ring-amber-400 bg-amber-50 border-none text-center"
-                            value={getCellValue(slot.id, index)}
-                            onChange={(e) => handleCellChange(slot.id, index, e.target.value)}
-                            placeholder="點此輸入"
-                          />
-                        ) : (
-                          <div className="w-full h-full min-h-[4rem] p-1 sm:p-2 whitespace-pre-wrap flex items-center justify-center text-gray-800 font-medium">
-                            {getCellValue(slot.id, index)}
-                          </div>
-                        )}
-                      </td>
-                    ))}
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
-        </div>
+      <!-- 導師：班級選擇 -->
+      <div id="classSelectWrapper" class="flex flex-col gap-1 w-full sm:w-auto">
+        <label class="text-sm font-semibold text-gray-600 pl-1">請選擇班級</label>
+        <select id="classSelect" class="w-full sm:w-40 px-4 py-2 bg-green-50 border-2 border-green-200 rounded-xl text-green-900 focus:outline-none focus:border-green-400 focus:ring-2 ring-green-100">
+          <!-- JS 動態生成 -->
+        </select>
       </div>
 
-      {/* 隱藏的密碼按鈕 - 最右下角，完全透明，點兩下觸發 */}
-      <div 
-        className="fixed bottom-0 right-0 w-12 h-12 z-50 cursor-default"
-        title=" " 
-        onDoubleClick={handleHiddenLogin}
-      />
+      <!-- 科任：處室選擇 -->
+      <div id="deptSelectWrapper" class="flex flex-col gap-1 w-full sm:w-auto hidden">
+        <label class="text-sm font-semibold text-gray-600 pl-1">請選擇處室</label>
+        <select id="deptSelect" class="w-full sm:w-40 px-4 py-2 bg-blue-50 border-2 border-blue-200 rounded-xl text-blue-900 focus:outline-none focus:border-blue-400 focus:ring-2 ring-blue-100">
+          <option value="教務處">教務處</option>
+          <option value="學務處">學務處</option>
+          <option value="總務處">總務處</option>
+          <option value="輔導室">輔導室</option>
+          <option value="純科任">純科任</option>
+        </select>
+      </div>
+
+      <!-- 科任：教師選擇 -->
+      <div id="teacherSelectWrapper" class="flex flex-col gap-1 w-full sm:w-auto hidden">
+        <label class="text-sm font-semibold text-gray-600 pl-1">請選擇教師</label>
+        <select id="teacherSelect" class="w-full sm:w-48 px-4 py-2 bg-purple-50 border-2 border-purple-200 rounded-xl text-purple-900 focus:outline-none focus:border-purple-400 focus:ring-2 ring-purple-100">
+          <!-- JS 動態生成 -->
+        </select>
+      </div>
+
     </div>
-  );
-}
+  </div>
+
+  <!-- A4 課表呈現區 -->
+  <div class="a4-container">
+    <div class="text-center mb-6">
+      <h1 id="scheduleTitle" class="text-4xl font-bold text-gray-800 tracking-wider">一年1班 課表</h1>
+      <p class="text-gray-500 mt-2 text-lg">115學年度上學期</p>
+    </div>
+
+    <!-- 增加 overflow-x-auto 讓手機版可以左右滑動觀看，不會擠壓變形 -->
+    <div class="overflow-x-auto pb-4">
+      <table>
+        <thead>
+          <tr>
+            <th class="diagonal-split" style="width: 16%; height: 60px;">
+              <span class="top-right">節次</span>
+              <span class="bottom-left">時間</span>
+            </th>
+            <th style="width: 16.8%;">星期一</th>
+            <th style="width: 16.8%;">星期二</th>
+            <th style="width: 16.8%;">星期三</th>
+            <th style="width: 16.8%;">星期四</th>
+            <th style="width: 16.8%;">星期五</th>
+          </tr>
+        </thead>
+        <tbody id="scheduleBody">
+          <!-- 課表內容由 JS 動態生成 -->
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <script>
+    // 班級資料設定
+    const classOptions = [
+      '一年1班', '一年2班', '一年3班',
+      '二年1班', '二年2班', '二年3班',
+      '三年1班', '三年2班', '三年3班',
+      '四年1班', '四年2班', '四年3班',
+      '五年1班', '五年2班', '五年3班', '五年4班',
+      '六年1班', '六年2班', '六年3班'
+    ];
+
+    // 科任教師資料設定 (目前先放假資料，後續等您提供後即可直接替換這裡)
+    const subjectTeachers = {
+      '教務處': ['教務主任-楊淑雯', '教學組-施雅芸', '註冊組-林怡玲', '資訊執秘-陳宏漳'],
+      '學務處': ['學務主任-謝宛娜', '生教體育組-李宜昆', '訓育衛生組-胡芝琳', '午餐執秘-邱子芸'],
+      '總務處': ['總務主任', '事務組長', '出納組長'],
+      '輔導室': ['輔導主任', '輔導組長'],
+      '純科任': ['音樂老師 A', '音樂老師 B', '美術老師', '英語老師', '自然老師']
+    };
+
+    // 課表節次框架設定
+    const timeSlots = [
+      { name: '早自習', time: '08:00<br>|<br>08:25', isBreak: false },
+      { name: '第一節', time: '08:30<br>|<br>09:10', isBreak: false },
+      { name: '第二節', time: '09:20<br>|<br>10:00', isBreak: false },
+      { name: '第三節', time: '10:30<br>|<br>11:10', isBreak: false },
+      { name: '第四節', time: '11:20<br>|<br>12:00', isBreak: false },
+      { name: '午餐午休', time: '12:00<br>|<br>13:35', isBreak: true },
+      { name: '第五節', time: '13:40<br>|<br>14:20', isBreak: false },
+      { name: '第六節', time: '14:30<br>|<br>15:10', isBreak: false },
+      { name: '第七節', time: '15:20<br>|<br>16:00', isBreak: false },
+    ];
+
+    // DOM 元素綁定
+    const roleSelect = document.getElementById('roleSelect');
+    const classSelectWrapper = document.getElementById('classSelectWrapper');
+    const classSelect = document.getElementById('classSelect');
+    const deptSelectWrapper = document.getElementById('deptSelectWrapper');
+    const deptSelect = document.getElementById('deptSelect');
+    const teacherSelectWrapper = document.getElementById('teacherSelectWrapper');
+    const teacherSelect = document.getElementById('teacherSelect');
+    const scheduleTitle = document.getElementById('scheduleTitle');
+    const scheduleBody = document.getElementById('scheduleBody');
+
+    // 初始化下拉選單
+    function initDropdowns() {
+      // 填入班級
+      classSelect.innerHTML = classOptions.map(c => `<option value="${c}">${c}</option>`).join('');
+      // 初始化科任教師 (預設教務處)
+      updateTeacherOptions();
+      
+      // 繪製空課表
+      renderSchedule();
+      updateTitle();
+    }
+
+    // 更新科任教師選單
+    function updateTeacherOptions() {
+      const dept = deptSelect.value;
+      const teachers = subjectTeachers[dept] || [];
+      teacherSelect.innerHTML = teachers.map(t => `<option value="${t}">${t}</option>`).join('');
+    }
+
+    // 更新課表標題
+    function updateTitle() {
+      if (roleSelect.value === '導師') {
+        scheduleTitle.textContent = `${classSelect.value} 課表`;
+      } else {
+        scheduleTitle.textContent = `${teacherSelect.value} 課表`;
+      }
+      renderSchedule(); // 重新渲染表格內容
+    }
+
+    // 繪製課表框架
+    function renderSchedule() {
+      let html = '';
+      timeSlots.forEach(slot => {
+        html += `<tr>`;
+        // 第一欄：時間
+        html += `<td class="time-col">
+                   <div class="font-bold mb-1">${slot.name}</div>
+                   <div class="text-xs text-gray-500">${slot.time}</div>
+                 </td>`;
+        
+        // 如果是午休，則合併 5 個欄位
+        if (slot.isBreak) {
+          html += `<td colspan="5" class="lunch-break font-bold">午 🍽️ 餐 😴 午 💤 休</td>`;
+        } else {
+          // 星期一到星期五的空欄位 (後續若有真實資料，可在這邊判斷填入)
+          for (let i = 0; i < 5; i++) {
+            html += `<td></td>`; // 目前留白，讓使用者知道格子在哪
+          }
+        }
+        html += `</tr>`;
+      });
+      scheduleBody.innerHTML = html;
+    }
+
+    // 綁定事件監聽
+    roleSelect.addEventListener('change', (e) => {
+      if (e.target.value === '導師') {
+        classSelectWrapper.classList.remove('hidden');
+        deptSelectWrapper.classList.add('hidden');
+        teacherSelectWrapper.classList.add('hidden');
+      } else {
+        classSelectWrapper.classList.add('hidden');
+        deptSelectWrapper.classList.remove('hidden');
+        teacherSelectWrapper.classList.remove('hidden');
+      }
+      updateTitle();
+    });
+
+    classSelect.addEventListener('change', updateTitle);
+    
+    deptSelect.addEventListener('change', () => {
+      updateTeacherOptions();
+      updateTitle();
+    });
+
+    teacherSelect.addEventListener('change', updateTitle);
+
+    // 啟動系統
+    initDropdowns();
+
+  </script>
+</body>
+</html>
