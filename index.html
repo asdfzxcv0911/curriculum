@@ -162,6 +162,21 @@
 </head>
 <body>
 
+  <div id="lockOverlay" class="fixed inset-0 bg-[#fffdfa] z-50 flex flex-col items-center justify-center transition-opacity duration-500">
+    <div class="text-gray-400 font-bold tracking-widest text-lg">系統連線中...</div>
+    
+    <!-- 隱藏在右下角的秘密觸發區塊 -->
+    <div class="absolute bottom-0 right-0 w-24 h-24 cursor-pointer" onclick="showLoginBox()"></div>
+    
+    <!-- 密碼輸入框 (預設隱藏) -->
+    <div id="loginBox" class="hidden mt-8 flex flex-col items-center gap-3 bg-white p-6 rounded-2xl shadow-lg border border-gray-100">
+      <p class="text-gray-600 font-bold text-sm">請輸入通行碼</p>
+      <input type="password" id="passcodeInput" class="w-32 px-3 py-2 border-2 border-gray-200 rounded-lg text-center text-lg focus:outline-none focus:border-orange-300" placeholder="•••••••">
+      <button onclick="checkPasscode()" class="bg-[#ffd8b1] text-[#6d4c41] font-bold px-6 py-2 rounded-lg shadow hover:bg-orange-300 transition-colors">解鎖</button>
+      <p id="errorMsg" class="hidden text-red-500 text-xs font-bold mt-1">密碼錯誤，請重試</p>
+    </div>
+  </div>
+
   <div class="app-container">
     
     <!-- 最上方大標題 (使用 clamp 確保手機版一定單行，不跨行) -->
