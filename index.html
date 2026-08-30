@@ -216,8 +216,10 @@
     </div>
 
     <!-- 中間大標題：班級名稱 / 老師尊稱 -->
-    <div class="text-center mb-2 md:mb-4">
-      <h1 id="scheduleTitle" class="text-2xl md:text-4xl font-bold text-gray-800 tracking-wider">一年1班</h1>
+    <div class="text-center mb-2 md:mb-4 relative w-full flex items-end justify-center">
+      <h1 id="scheduleTitle" class="text-2xl md:text-4xl font-bold text-gray-800 tracking-wider w-full">一年1班</h1>
+      <!-- 絕對定位的分機號碼，貼齊右邊 -->
+      <div id="extNumber" class="absolute right-0 bottom-0 text-[11px] min-[375px]:text-sm md:text-lg font-bold text-gray-600 mb-0.5 md:mb-1 pr-1"></div>
     </div>
 
     <!-- 課表表格 -->
@@ -415,7 +417,7 @@
       }
     };
 
-    // 資源班獨立資料庫 (包含 -1 早自習與 0~7 一般節次)
+    // 資源班獨立資料庫 (包含 -1 早自習與 0~7 一般節次，以及李介麟專屬第8節)
     const resourceSchedules = {
       '林婉茱': {
         'MON': { '-1': {s: '國語', t: '1A'}, '0': {s: '數學', t: '6'}, '1': {s: '數學', t: '1B'}, '2': {s: '', t: ''}, '3': {s: '', t: ''}, '5': {s: '數學', t: '1A'}, '6': {s: '數學', t: '1A'}, '7': {s: '', t: ''} },
@@ -457,17 +459,32 @@
     const teacherSelect = document.getElementById('teacherSelect');
     const scheduleTitle = document.getElementById('scheduleTitle');
     const scheduleBody = document.getElementById('scheduleBody');
+    const extNumber = document.getElementById('extNumber'); // 新增分機號碼綁定
 
-    // 新增：記錄是否開啟導師聚焦模式
+    // 老師分機資料庫 (解決重複分機，自動取後者)
+    const teacherExtensions = {
+      '徐淑卿': '711', '李宜昆': '211', '楊淑雯': '318', '施雅芸': '764',
+      '林怡伶': '782', '陳宏漳': '118', '謝宛娜': '21',  '胡芝琳': '776',
+      '邱子芸': '786', '凃棟隆': '31',  '邱文彥': '311', '沈金池': '312',
+      '陳振益': '41',  '周怡君': '774', '李介麟': '412', '陳美妗': '412',
+      '林婉茱': '413', '陳韶絃': '781', '李柏勳': '725', '黃上乘': '784',
+      '葉玟孝': '318', '吳建緯': '734', '盧岱岑': '744', '孫維麟': '712',
+      '李儀': '713',   '陳雪娥': '721', '何雅芬': '722', '王智琴': '723',
+      '吳宜玲': '731', '林佩樺': '732', '黃俊堯': '733', '黃振賢': '741',
+      '陳怡如': '742', '施錦玲': '743', '陳宣廷': '751', '高婉禎': '752',
+      '江義靖': '753', '廖邛菁': '754', '曾佳瑩': '761', '陳詩宜': '762',
+      '李沛玲': '763'
+    };
+
+    // 記錄是否開啟導師聚焦模式
     let isFocusMode = false;
 
-    // 新增：切換聚焦模式的函數
+    // 切換聚焦模式的函數
     window.toggleFocusMode = function() {
       isFocusMode = !isFocusMode;
       renderSchedule(); // 重新繪製課表產生淡化特效
     };
 
-    // 【最關鍵的啟動函數】在這裡定義
     // 更新科任教師選單
     function updateTeacherOptions() {
       const dept = deptSelect.value;
@@ -475,7 +492,7 @@
       teacherSelect.innerHTML = teachers.map(t => `<option value="${t}">${t}</option>`).join('');
     }
 
-    // 新增：自動計算並抓取該班級授課節數最多的老師（即導師）
+    // 自動計算並抓取該班級授課節數最多的老師（即導師）
     function getHomeroomTeacher(className) {
       const schedule = classSchedules[className];
       if (!schedule) return '';
@@ -500,37 +517,46 @@
       return homeroomTeacher;
     }
 
-    // 更新課表標題 (包含主任/老師的聰明判斷)
+    // 更新課表標題與分機號碼 (隱藏彩蛋版，並同步更新分機)
     function updateTitle() {
+      let targetTeacherName = ''; // 用來儲存最後要查詢分機的老師姓名
+
       if (roleSelect.value === '導師') {
         const currentClass = classSelect.value;
         const hrTeacher = getHomeroomTeacher(currentClass);
-        // 移除藍色字體與底線，恢復預設外觀，隱藏式保留點擊開關 (onclick)
-        scheduleTitle.innerHTML = `${currentClass} \u00A0\u00A0 導師：<span onclick="toggleFocusMode()" class="cursor-pointer active:opacity-50 transition-opacity" title="點擊開啟/關閉聚焦模式">${hrTeacher}</span>`;
+        // 恢復預設黑色字體，保留點擊特效，完全沒有底線或顏色提示 (彩蛋)
+        scheduleTitle.innerHTML = `<span onclick="toggleFocusMode()" class="cursor-pointer">${currentClass} &nbsp;&nbsp; 導師：${hrTeacher}</span>`;
+        targetTeacherName = hrTeacher;
       } else {
         // 科任標題處理邏輯
         const rawValue = teacherSelect.value;
-        if (!rawValue) return; // 避免找不到值報錯
+        if (!rawValue) return; 
         
         let name = rawValue;
         let suffix = ' 老師'; // 預設稱呼為老師
 
-        // 如果字串包含 '-'，代表是「職稱-姓名」格式，將其切割並只取姓名
         if (rawValue.includes('-')) {
           name = rawValue.split('-')[1];
         }
-
-        // 如果原本字串包含「主任」，就把稱呼改成主任
         if (rawValue.includes('主任')) {
           suffix = ' 主任';
         }
 
-        scheduleTitle.innerHTML = name + suffix; // 改用 innerHTML 確保格式一致
+        scheduleTitle.innerHTML = name + suffix; 
+        targetTeacherName = name;
       }
+
+      // 查詢並更新分機號碼顯示 (絕對定位靠右)
+      if (teacherExtensions[targetTeacherName]) {
+        extNumber.innerText = `分機：${teacherExtensions[targetTeacherName]}`;
+      } else {
+        extNumber.innerText = ''; // 如果沒有分機則自動留空
+      }
+
       renderSchedule();
     }
 
-    // 新增：尋找老師所屬處室 (用於跳轉)
+    // 尋找老師所屬處室 (用於跳轉)
     function findTeacherDept(teacherName) {
       if (!teacherName) return null;
       for (const dept in subjectTeachers) {
@@ -543,7 +569,7 @@
       return null;
     }
 
-    // 新增：跳轉到特定科任老師課表
+    // 跳轉到特定科任老師課表
     window.goToTeacher = function(teacherName) {
       const info = findTeacherDept(teacherName);
       if (!info) return; // 如果不是科任老師(例如導師)，就不動作
@@ -558,7 +584,7 @@
       teacherSelect.dispatchEvent(new Event('change'));
     };
 
-    // 新增：跳轉到特定班級課表
+    // 跳轉到特定班級課表
     window.goToClass = function(className) {
       roleSelect.value = '導師';
       roleSelect.dispatchEvent(new Event('change')); // 觸發介面切換
@@ -660,7 +686,7 @@
 
             // 開始繪製單一格子
             if (cellData.subject || cellData.teacher) {
-              // 判斷是否要啟動淡化特效 (聚焦模式開啟 且 該節課不是導師上的)
+              // 判斷是否要啟動淡化特效 (聚焦模式開啟 且 該節課不是導師上的)，透明度 10%
               let fadeClass = '';
               if (!isTeacherView && isFocusMode && cellData.teacher !== hrTeacher) {
                 fadeClass = 'opacity-10 transition-opacity duration-500';
@@ -670,10 +696,10 @@
 
               let teacherHtml = '';
               if (!isTeacherView) {
-                // 導師視角：點擊跳轉到該科任老師
+                // 導師視角：點擊跳轉到該科任老師 (隱藏提示，純灰色)
                 teacherHtml = `<div onclick="goToTeacher('${cellData.teacher}')" class="text-[12px] min-[400px]:text-[13px] md:text-[20px] text-gray-500 whitespace-nowrap overflow-hidden text-ellipsis mt-0.5 cursor-pointer rounded mx-1">${cellData.teacher}</div>`;
               } else {
-                // 科任視角：點擊跳轉到該班級
+                // 科任視角：點擊跳轉到該班級 (隱藏提示，純灰色)
                 teacherHtml = `<div onclick="goToClass('${cellData.teacher}')" class="text-[12px] min-[400px]:text-[13px] md:text-[20px] text-gray-500 whitespace-nowrap overflow-hidden text-ellipsis mt-0.5 cursor-pointer rounded mx-1">${cellData.teacher}</div>`;
               }
 
