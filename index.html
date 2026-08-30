@@ -430,10 +430,38 @@
       teacherSelect.innerHTML = teachers.map(t => `<option value="${t}">${t}</option>`).join('');
     }
 
+    // 新增：自動計算並抓取該班級授課節數最多的老師（即導師）
+    function getHomeroomTeacher(className) {
+      const schedule = classSchedules[className];
+      if (!schedule) return '';
+      
+      const teacherCounts = {};
+      let maxCount = 0;
+      let homeroomTeacher = '';
+
+      for (const day in schedule) {
+        schedule[day].forEach(slot => {
+          // 確保老師欄位有名字，且不是空白
+          if (slot.t && slot.t.trim() !== '') {
+            teacherCounts[slot.t] = (teacherCounts[slot.t] || 0) + 1;
+            // 找出出現最多次的名字
+            if (teacherCounts[slot.t] > maxCount) {
+              maxCount = teacherCounts[slot.t];
+              homeroomTeacher = slot.t;
+            }
+          }
+        });
+      }
+      return homeroomTeacher;
+    }
+
     // 更新課表標題 (包含主任/老師的聰明判斷)
     function updateTitle() {
       if (roleSelect.value === '導師') {
-        scheduleTitle.textContent = classSelect.value;
+        const currentClass = classSelect.value;
+        const hrTeacher = getHomeroomTeacher(currentClass);
+        // 在班級與導師名字中間加上空格，讓排版更好看
+        scheduleTitle.textContent = `${currentClass} \u00A0\u00A0 導師：${hrTeacher}`;
       } else {
         // 科任標題處理邏輯
         const rawValue = teacherSelect.value;
