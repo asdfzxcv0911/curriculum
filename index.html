@@ -11,9 +11,10 @@
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="theme-color" content="#fffdfa">
   
-  <!-- 桌面捷徑的專屬 APP 圖示 (可愛的橘色底 + 🎒書包圖案) -->
-  <link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' fill='%23ffd8b1' rx='22'/%3E%3Ctext x='50' y='55' font-size='55' text-anchor='middle' dominant-baseline='central'%3E%F0%9F%8E%92%3C/text%3E%3C/svg%3E">
-  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' fill='%23ffd8b1' rx='22'/%3E%3Ctext x='50' y='55' font-size='55' text-anchor='middle' dominant-baseline='central'%3E%F0%9F%8E%92%3C/text%3E%3C/svg%3E">
+  <!-- 桌面捷徑的專屬 APP 圖示 (指向實體圖片檔案) -->
+  <link rel="apple-touch-icon" sizes="180x180" href="icon.jpg">
+  <link rel="icon" type="image/jpeg" sizes="192x192" href="icon.jpg">
+  <link rel="icon" type="image/jpeg" href="icon.jpg">
 
   <title>高雄市小港區二苓國小115學年度課表</title>
   
@@ -46,13 +47,13 @@
       width: 100%;
       table-layout: fixed; /* 鎖定表格寬度，字再多都會擠在裡面，防止跑版 */
       border-collapse: separate;
-      border-spacing: 2px;
+      border-spacing: 3px; /* 微調加大間距，避免手機版像素運算吃掉虛線 */
       margin-top: 10px;
     }
 
     /* 電腦版：加大格子間距 */
     @media (min-width: 768px) {
-      table { border-spacing: 4px; margin-top: 15px; }
+      table { border-spacing: 5px; margin-top: 15px; }
       body { padding: 15px; }
     }
 
@@ -69,7 +70,7 @@
 
     td {
       background-color: #fff9f2;
-      border: 2px dashed #f0d5b6;
+      border: 1.5px dashed #f0d5b6; /* 微調邊框，讓手機更容易完整渲染 */
       text-align: center;
       padding: 4px 1px;
       border-radius: 8px;
@@ -157,8 +158,8 @@
       </h2>
     </div>
 
-    <!-- 控制面板 (左:身份 中:細項 右:名字) -->
-    <div class="no-print flex flex-row gap-2 md:gap-4 items-end justify-center mb-3">
+    <!-- 控制面板 (加上 flex-wrap 讓手機螢幕太窄時可以自動換行，不會切斷名字) -->
+    <div class="no-print flex flex-row flex-wrap gap-2 md:gap-4 items-end justify-center mb-3">
       
       <!-- 身份選擇 -->
       <div class="flex flex-col gap-1">
@@ -192,7 +193,8 @@
       <!-- 科任：教師選擇 -->
       <div id="teacherSelectWrapper" class="flex flex-col gap-1 hidden">
         <label class="text-[10px] md:text-sm font-semibold text-gray-600 pl-1">名字</label>
-        <select id="teacherSelect" class="w-auto pl-2 pr-5 py-1 bg-purple-50 border-2 border-purple-200 rounded-lg text-purple-900 focus:outline-none text-xs md:text-lg font-bold text-ellipsis overflow-hidden max-w-[30vw] md:max-w-none">
+        <!-- 移除限制寬度與隱藏文字的設定，讓完整姓名可以顯示 -->
+        <select id="teacherSelect" class="w-auto pl-2 pr-5 py-1 bg-purple-50 border-2 border-purple-200 rounded-lg text-purple-900 focus:outline-none text-xs md:text-lg font-bold">
           <!-- JS 動態生成 -->
         </select>
       </div>
@@ -209,15 +211,16 @@
       <table>
         <thead>
           <tr>
-            <th class="diagonal-split" style="width: 15%;">
+            <th class="diagonal-split" style="width: 16%;">
               <span class="top-right">星期</span>
               <span class="bottom-left">時間</span>
             </th>
-            <th style="width: 17%;">星期一</th>
-            <th style="width: 17%;">星期二</th>
-            <th style="width: 17%;">星期三</th>
-            <th style="width: 17%;">星期四</th>
-            <th style="width: 17%;">星期五</th>
+            <!-- 拿掉原本固定的 17% 寬度，交由瀏覽器自動均分，就不會算錯而吃掉線條了 -->
+            <th>星期一</th>
+            <th>星期二</th>
+            <th>星期三</th>
+            <th>星期四</th>
+            <th>星期五</th>
           </tr>
         </thead>
         <tbody id="scheduleBody">
