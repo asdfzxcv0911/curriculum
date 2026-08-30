@@ -2,7 +2,7 @@
 <html lang="zh-TW">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
   
   <!-- === 將網頁加入手機桌面捷徑 (Web App) 專用設定 === -->
   <meta name="apple-mobile-web-app-capable" content="yes">
@@ -11,9 +11,9 @@
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="theme-color" content="#fffdfa">
   
-  <!-- 桌面捷徑的專屬 APP 圖示 (可愛的橘色日曆) -->
-  <link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' fill='%23ffd8b1' rx='20'/%3E%3Ctext x='50' y='55' font-size='50' text-anchor='middle' dominant-baseline='central'%3E%F0%9F%93%85%3C/text%3E%3C/svg%3E">
-  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='1em' font-size='80'%3E%F0%9F%93%85%3C/text%3E%3C/svg%3E">
+  <!-- 桌面捷徑的專屬 APP 圖示 (可愛的橘色底 + 🎒書包圖案) -->
+  <link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' fill='%23ffd8b1' rx='22'/%3E%3Ctext x='50' y='55' font-size='55' text-anchor='middle' dominant-baseline='central'%3E%F0%9F%8E%92%3C/text%3E%3C/svg%3E">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' fill='%23ffd8b1' rx='22'/%3E%3Ctext x='50' y='55' font-size='55' text-anchor='middle' dominant-baseline='central'%3E%F0%9F%8E%92%3C/text%3E%3C/svg%3E">
 
   <title>高雄市小港區二苓國小115學年度課表</title>
   
@@ -25,80 +25,86 @@
   <link href="https://fonts.googleapis.com/css2?family=Klee+One:wght@400;600&display=swap" rel="stylesheet">
   
   <style>
+    /* 全域套用可愛字體與背景 */
     body {
       font-family: 'Klee One', cursive;
       background-color: #fffdfa;
       color: #4a4a4a;
       margin: 0;
-      padding: 10px;
+      padding: 6px;
     }
 
-    /* 滿版容器，不再受限 A4 白紙框 */
     .app-container {
       width: 100%;
-      max-width: 900px;
+      max-width: 950px;
       margin: 0 auto;
-      padding: 10px;
+      padding: 4px;
     }
 
-    /* 可愛的表格樣式 */
+    /* 課表表格樣式 (固定版面，防止手機溢出) */
     table {
       width: 100%;
+      table-layout: fixed; /* 鎖定表格寬度，字再多都會擠在裡面，防止跑版 */
       border-collapse: separate;
-      border-spacing: 4px;
-      margin-top: 15px;
+      border-spacing: 2px;
+      margin-top: 10px;
+    }
+
+    /* 電腦版：加大格子間距 */
+    @media (min-width: 768px) {
+      table { border-spacing: 4px; margin-top: 15px; }
+      body { padding: 15px; }
     }
 
     th {
       background-color: #ffd8b1;
       color: #6d4c41;
       font-weight: 600;
-      padding: 10px 4px;
-      border-radius: 10px;
-      font-size: 1rem;
+      padding: 6px 2px;
+      border-radius: 8px;
+      font-size: 0.9rem;
+      overflow: hidden;
       white-space: nowrap;
-    }
-
-    /* 電腦版：放大表頭字體與間距 */
-    @media (min-width: 768px) {
-      th { font-size: 1.3rem; padding: 14px 8px; }
     }
 
     td {
       background-color: #fff9f2;
       border: 2px dashed #f0d5b6;
       text-align: center;
-      padding: 8px 2px;
-      border-radius: 10px;
-      height: 55px; /* 手機版：稍微縮減高度，確保一頁能塞下不用滑動 */
+      padding: 4px 1px;
+      border-radius: 8px;
+      height: 60px; /* 手機版：合適高度 */
       vertical-align: middle;
-      font-weight: 600;
       color: #5c4033;
-      white-space: nowrap; /* 強制不換行，不跨行 */
+      overflow: hidden; /* 防止內容撐開格子 */
     }
 
-    /* 電腦版：加大格子高度 */
+    /* 電腦版：放大表頭與格子高度 */
     @media (min-width: 768px) {
-      td { height: 85px; }
+      th { font-size: 1.3rem; padding: 12px 6px; border-radius: 12px; }
+      td { height: 95px; padding: 8px 4px; border-radius: 12px; }
     }
 
     .time-col {
       background-color: #dcedc8;
       border: none;
       color: #33691e;
-      font-size: 0.9rem;
-      line-height: 1.3;
+      line-height: 1.2;
     }
 
     .lunch-break {
       background-color: #b3e5fc;
       border: none;
       color: #01579b;
-      letter-spacing: 4px;
-      font-size: 1.1rem;
+      letter-spacing: 3px;
+      font-size: 1rem;
     }
 
-    /* 左上角斜線表頭 */
+    @media (min-width: 768px) {
+      .lunch-break { letter-spacing: 5px; font-size: 1.5rem; }
+    }
+
+    /* 左上角斜線表頭 (星期/時間) */
     .diagonal-split {
       position: relative;
       background-image: linear-gradient(to bottom left, transparent calc(50% - 1px), #dcae80 calc(50% - 1px), #dcae80 calc(50% + 1px), transparent calc(50% + 1px));
@@ -106,31 +112,31 @@
     .diagonal-split .top-right {
       position: absolute;
       top: 2px;
-      right: 6px;
-      font-size: 0.85rem;
+      right: 4px;
+      font-size: 0.75rem;
       font-weight: 600;
     }
     .diagonal-split .bottom-left {
       position: absolute;
       bottom: 2px;
-      left: 6px;
-      font-size: 0.85rem;
+      left: 4px;
+      font-size: 0.75rem;
       font-weight: 600;
     }
 
-    /* 電腦版：加大對角線表頭字體 */
     @media (min-width: 768px) {
       .diagonal-split .top-right { font-size: 1.1rem; top: 6px; right: 10px; }
       .diagonal-split .bottom-left { font-size: 1.1rem; bottom: 6px; left: 10px; }
     }
 
+    /* 下拉選單自訂箭頭 */
     select {
       font-family: 'Klee One', cursive;
       appearance: none;
       background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%236d4c41' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3C/polyline%3e%3C/svg%3e");
       background-repeat: no-repeat;
-      background-position: right 4px center; /* 箭頭往右靠緊 */
-      background-size: 0.9em;
+      background-position: right 4px center;
+      background-size: 1em;
     }
 
     @media print {
@@ -144,18 +150,20 @@
 
   <div class="app-container">
     
-    <!-- 最上方大標題 (強制單行不換行) -->
-    <div class="text-center mb-4">
-      <h2 class="text-lg md:text-2xl font-bold text-gray-700 whitespace-nowrap">高雄市小港區二苓國小115學年度課表</h2>
+    <!-- 最上方大標題 (使用 clamp 確保手機版一定單行，不跨行) -->
+    <div class="text-center mb-3 md:mb-5">
+      <h2 class="font-bold text-gray-700 whitespace-nowrap" style="font-size: clamp(14px, 4.2vw, 28px);">
+        高雄市小港區二苓國小115學年度課表
+      </h2>
     </div>
 
-    <!-- 控制面板 (左:身份 中:細項 右:名字，無虛線) -->
-    <div class="no-print flex flex-row gap-2 md:gap-4 items-end justify-center mb-4">
+    <!-- 控制面板 (左:身份 中:細項 右:名字) -->
+    <div class="no-print flex flex-row gap-2 md:gap-4 items-end justify-center mb-3">
       
-      <!-- 身份選擇 (使用 w-auto 和縮減 padding 來消滅空白) -->
+      <!-- 身份選擇 -->
       <div class="flex flex-col gap-1">
-        <label class="text-xs md:text-sm font-semibold text-gray-600 pl-1">身份</label>
-        <select id="roleSelect" class="w-auto pl-2 pr-6 py-1.5 bg-orange-50 border-2 border-orange-200 rounded-xl text-orange-900 focus:outline-none focus:border-orange-400 text-sm md:text-base font-bold">
+        <label class="text-[10px] md:text-sm font-semibold text-gray-600 pl-1">身份</label>
+        <select id="roleSelect" class="w-auto pl-2 pr-5 py-1 bg-orange-50 border-2 border-orange-200 rounded-lg text-orange-900 focus:outline-none text-xs md:text-lg font-bold">
           <option value="導師">導師</option>
           <option value="科任">科任</option>
         </select>
@@ -163,16 +171,16 @@
 
       <!-- 導師：班級選擇 -->
       <div id="classSelectWrapper" class="flex flex-col gap-1">
-        <label class="text-xs md:text-sm font-semibold text-gray-600 pl-1">班級</label>
-        <select id="classSelect" class="w-auto pl-2 pr-6 py-1.5 bg-green-50 border-2 border-green-200 rounded-xl text-green-900 focus:outline-none focus:border-green-400 text-sm md:text-base font-bold">
+        <label class="text-[10px] md:text-sm font-semibold text-gray-600 pl-1">班級</label>
+        <select id="classSelect" class="w-auto pl-2 pr-5 py-1 bg-green-50 border-2 border-green-200 rounded-lg text-green-900 focus:outline-none text-xs md:text-lg font-bold">
           <!-- JS 動態生成 -->
         </select>
       </div>
 
       <!-- 科任：處室選擇 -->
       <div id="deptSelectWrapper" class="flex flex-col gap-1 hidden">
-        <label class="text-xs md:text-sm font-semibold text-gray-600 pl-1">處室</label>
-        <select id="deptSelect" class="w-auto pl-2 pr-6 py-1.5 bg-blue-50 border-2 border-blue-200 rounded-xl text-blue-900 focus:outline-none focus:border-blue-400 text-sm md:text-base font-bold">
+        <label class="text-[10px] md:text-sm font-semibold text-gray-600 pl-1">處室</label>
+        <select id="deptSelect" class="w-auto pl-2 pr-5 py-1 bg-blue-50 border-2 border-blue-200 rounded-lg text-blue-900 focus:outline-none text-xs md:text-lg font-bold">
           <option value="教務處">教務處</option>
           <option value="學務處">學務處</option>
           <option value="總務處">總務處</option>
@@ -183,17 +191,17 @@
 
       <!-- 科任：教師選擇 -->
       <div id="teacherSelectWrapper" class="flex flex-col gap-1 hidden">
-        <label class="text-xs md:text-sm font-semibold text-gray-600 pl-1">名字</label>
-        <select id="teacherSelect" class="w-auto pl-2 pr-6 py-1.5 bg-purple-50 border-2 border-purple-200 rounded-xl text-purple-900 focus:outline-none focus:border-purple-400 text-sm md:text-base font-bold">
+        <label class="text-[10px] md:text-sm font-semibold text-gray-600 pl-1">名字</label>
+        <select id="teacherSelect" class="w-auto pl-2 pr-5 py-1 bg-purple-50 border-2 border-purple-200 rounded-lg text-purple-900 focus:outline-none text-xs md:text-lg font-bold text-ellipsis overflow-hidden max-w-[30vw] md:max-w-none">
           <!-- JS 動態生成 -->
         </select>
       </div>
 
     </div>
 
-    <!-- 班級名稱大標題 -->
-    <div class="text-center mb-3">
-      <h1 id="scheduleTitle" class="text-3xl font-bold text-gray-800 tracking-wider">一年1班</h1>
+    <!-- 中間大標題：班級名稱 / 老師尊稱 -->
+    <div class="text-center mb-2 md:mb-4">
+      <h1 id="scheduleTitle" class="text-2xl md:text-4xl font-bold text-gray-800 tracking-wider">一年1班</h1>
     </div>
 
     <!-- 課表表格 -->
@@ -201,7 +209,7 @@
       <table>
         <thead>
           <tr>
-            <th class="diagonal-split" style="width: 15%; height: 50px;">
+            <th class="diagonal-split" style="width: 15%;">
               <span class="top-right">星期</span>
               <span class="bottom-left">時間</span>
             </th>
@@ -231,7 +239,7 @@
       '六年1班', '六年2班', '六年3班'
     ];
 
-    // 科任教師資料設定
+    // 科任教師資料設定 (已更新真實名單)
     const subjectTeachers = {
       '教務處': ['教務主任-楊淑雯', '教學組長-施雅芸', '註冊組長-林怡伶', '資訊執秘-陳宏漳'],
       '學務處': ['學務主任-謝宛娜', '生教體育-李宜昆', '訓育衛生-胡芝琳', '午餐執秘-邱子芸'],
@@ -252,9 +260,8 @@
       { name: '第七節', time: '15:20-16:00', isBreak: false },
     ];
 
-    // 一年1班真實課表資料 (已移除早自習欄位)
+    // 一年1班真實課表資料
     const grade1Class1Schedule = {
-      // 星期一到星期五 [第1節, 第2節, 第3節, 第4節, 午休, 第5節, 第6節, 第7節]
       'MON': [
         { subject: '國語', teacher: '徐淑卿' },
         { subject: '數學', teacher: '徐淑卿' },
@@ -307,6 +314,27 @@
       ]
     };
 
+    // DOM 元素綁定
+    const roleSelect = document.getElementById('roleSelect');
+    const classSelectWrapper = document.getElementById('classSelectWrapper');
+    const classSelect = document.getElementById('classSelect');
+    const deptSelectWrapper = document.getElementById('deptSelectWrapper');
+    const deptSelect = document.getElementById('deptSelect');
+    const teacherSelectWrapper = document.getElementById('teacherSelectWrapper');
+    const teacherSelect = document.getElementById('teacherSelect');
+    const scheduleTitle = document.getElementById('scheduleTitle');
+    const scheduleBody = document.getElementById('scheduleBody');
+
+    // 【最關鍵的啟動函數】在這裡定義，剛剛就是不小心把這塊弄丟了
+    function initDropdowns() {
+      // 填入班級選單
+      classSelect.innerHTML = classOptions.map(c => `<option value="${c}">${c}</option>`).join('');
+      // 初始化科任教師選單
+      updateTeacherOptions();
+      // 繪製初始畫面
+      updateTitle();
+    }
+
     // 更新科任教師選單
     function updateTeacherOptions() {
       const dept = deptSelect.value;
@@ -314,32 +342,34 @@
       teacherSelect.innerHTML = teachers.map(t => `<option value="${t}">${t}</option>`).join('');
     }
 
-    // 更新課表標題
+    // 更新課表標題 (包含主任/老師的聰明判斷)
     function updateTitle() {
       if (roleSelect.value === '導師') {
         scheduleTitle.textContent = classSelect.value;
       } else {
-        // 科任教師標題處理邏輯
+        // 科任標題處理邏輯
         const rawValue = teacherSelect.value;
+        if (!rawValue) return; // 避免找不到值報錯
+        
         let name = rawValue;
         let suffix = ' 老師'; // 預設稱呼為老師
 
-        // 如果字串包含 '-'，代表是「職稱-姓名」格式，將其切割並只取後面的姓名
+        // 如果字串包含 '-'，代表是「職稱-姓名」格式，將其切割並只取姓名
         if (rawValue.includes('-')) {
           name = rawValue.split('-')[1];
         }
 
-        // 如果原本的字串裡面包含「主任」兩個字，就把稱呼改成主任
+        // 如果原本字串包含「主任」，就把稱呼改成主任
         if (rawValue.includes('主任')) {
           suffix = ' 主任';
         }
 
-        // 組合姓名與稱呼，中間空一格
         scheduleTitle.textContent = name + suffix;
       }
       renderSchedule();
     }
 
+    // 繪製課表
     function renderSchedule() {
       let html = '';
       const days = ['MON', 'TUE', 'WED', 'THU', 'FRI'];
@@ -347,16 +377,16 @@
 
       timeSlots.forEach((slot, slotIndex) => {
         html += `<tr>`;
-        // 第一欄：節次與時間 (加入響應式字體 md:text-base)
+        // 第一欄：節次與時間
         let timeFormatted = slot.time.replace('-', '<br>');
         html += `<td class="time-col">
-                   <div class="font-bold text-xs md:text-base">${slot.name}</div>
-                   <div class="text-[10px] md:text-sm text-gray-600 mt-1">${timeFormatted}</div>
+                   <div class="font-bold text-[11px] md:text-xl">${slot.name}</div>
+                   <div class="text-[9px] md:text-sm text-gray-600 mt-1 leading-tight">${timeFormatted}</div>
                  </td>`;
         
-        // 午休跨 5 欄
+        // 午休
         if (slot.isBreak) {
-          html += `<td colspan="5" class="lunch-break font-bold md:text-2xl">午 🍽️ 餐 😴 午 💤 休</td>`;
+          html += `<td colspan="5" class="lunch-break font-bold">午 🍽️ 餐 😴 午 💤 休</td>`;
         } else {
           // 星期一到星期五
           for (let i = 0; i < 5; i++) {
@@ -368,10 +398,10 @@
             }
 
             if (cellData.subject) {
-              // 電腦版加大字體 md:text-xl (科目) 與 md:text-base (老師)
+              // 強制單行、超出隱藏，保持表格完美比例
               html += `<td>
-                         <div class="text-sm md:text-xl font-bold text-gray-800">${cellData.subject}</div>
-                         <div class="text-[11px] md:text-base text-gray-500">${cellData.teacher}</div>
+                         <div class="text-[13px] md:text-2xl font-bold text-gray-800 whitespace-nowrap overflow-hidden text-ellipsis">${cellData.subject}</div>
+                         <div class="text-[9px] md:text-lg text-gray-500 whitespace-nowrap overflow-hidden text-ellipsis mt-0.5">${cellData.teacher}</div>
                        </td>`;
             } else {
               html += `<td></td>`;
@@ -383,7 +413,7 @@
       scheduleBody.innerHTML = html;
     }
 
-    // 事件監聽
+    // 事件監聽綁定
     roleSelect.addEventListener('change', (e) => {
       if (e.target.value === '導師') {
         classSelectWrapper.classList.remove('hidden');
@@ -393,18 +423,21 @@
         classSelectWrapper.classList.add('hidden');
         deptSelectWrapper.classList.remove('hidden');
         teacherSelectWrapper.classList.remove('hidden');
+        updateTeacherOptions(); // 切換時自動更新老師名單
       }
       updateTitle();
     });
 
     classSelect.addEventListener('change', updateTitle);
+    
     deptSelect.addEventListener('change', () => {
       updateTeacherOptions();
       updateTitle();
     });
+    
     teacherSelect.addEventListener('change', updateTitle);
 
-    // 啟動
+    // 正式啟動系統
     initDropdowns();
   </script>
 </body>
