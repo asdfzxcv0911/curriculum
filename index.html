@@ -546,12 +546,20 @@
         targetTeacherName = name;
       }
 
-      // 查詢並更新分機號碼顯示 (絕對定位靠右)
-      if (teacherExtensions[targetTeacherName]) {
-        extNumber.innerText = `分機：${teacherExtensions[targetTeacherName]}`;
-      } else {
-        extNumber.innerText = ''; // 如果沒有分機則自動留空
+      // 查詢並更新分機號碼與教室顯示 (絕對定位靠右，雙層堆疊)
+      let infoHtml = '';
+      
+      // 若為科任且資料庫中有教室位置，則顯示在第一行
+      if (roleSelect.value === '科任' && teacherClassrooms[targetTeacherName]) {
+        infoHtml += `<div>教室：${teacherClassrooms[targetTeacherName]}</div>`;
       }
+      
+      // 顯示分機號碼 (顯示在第二行)
+      if (teacherExtensions[targetTeacherName]) {
+        infoHtml += `<div>分機：${teacherExtensions[targetTeacherName]}</div>`;
+      }
+
+      extNumber.innerHTML = infoHtml;
 
       renderSchedule();
     }
