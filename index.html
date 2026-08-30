@@ -602,9 +602,22 @@
               }
             }
 
-            // 判斷是否要啟動淡化特效 (聚焦模式開啟 且 該節課不是導師上的)
-                // 科任視角
-                // 移除藍色與粗體，恢復成與一般文字相同的 text-gray-500 font-semibold，隱藏式保留點擊功能
+            // 開始繪製單一格子 (修復語法錯誤的區塊)
+            if (cellData.subject || cellData.teacher) {
+              // 判斷是否要啟動淡化特效 (聚焦模式開啟 且 該節課不是導師上的)
+              let fadeClass = '';
+              if (!isTeacherView && isFocusMode && cellData.teacher !== hrTeacher) {
+                fadeClass = 'opacity-10 transition-opacity duration-500';
+              } else {
+                fadeClass = 'transition-opacity duration-500';
+              }
+
+              let teacherHtml = '';
+              if (!isTeacherView) {
+                // 導師視角：點擊跳轉到該科任老師
+                teacherHtml = `<div onclick="goToTeacher('${cellData.teacher}')" class="text-[12px] min-[400px]:text-[13px] md:text-[20px] text-gray-500 font-semibold whitespace-nowrap overflow-hidden text-ellipsis mt-0.5 cursor-pointer rounded mx-1">${cellData.teacher}</div>`;
+              } else {
+                // 科任視角：點擊跳轉到該班級
                 teacherHtml = `<div onclick="goToClass('${cellData.teacher}')" class="text-[12px] min-[400px]:text-[13px] md:text-[20px] text-gray-500 font-semibold whitespace-nowrap overflow-hidden text-ellipsis mt-0.5 cursor-pointer rounded mx-1">${cellData.teacher}</div>`;
               }
 
@@ -614,7 +627,8 @@
                        </td>`;
             } else {
               // 沒課的空格也一併加上淡化類別，這樣網格才會一致消失
-              html += `<td class="${fadeClass}"></td>`;
+              let emptyFadeClass = isFocusMode ? 'opacity-10 transition-opacity duration-500' : 'transition-opacity duration-500';
+              html += `<td class="${emptyFadeClass}"></td>`;
             }
           }
         }
