@@ -414,16 +414,16 @@
     const scheduleTitle = document.getElementById('scheduleTitle');
     const scheduleBody = document.getElementById('scheduleBody');
 
-    // 【最關鍵的啟動函數】在這裡定義，剛剛就是不小心把這塊弄丟了
-    function initDropdowns() {
-      // 填入班級選單
-      classSelect.innerHTML = classOptions.map(c => `<option value="${c}">${c}</option>`).join('');
-      // 初始化科任教師選單
-      updateTeacherOptions();
-      // 繪製初始畫面
-      updateTitle();
-    }
+    // 新增：記錄是否開啟導師聚焦模式
+    let isFocusMode = false;
 
+    // 新增：切換聚焦模式的函數
+    window.toggleFocusMode = function() {
+      isFocusMode = !isFocusMode;
+      renderSchedule(); // 重新繪製課表產生淡化特效
+    };
+
+    // 【最關鍵的啟動函數】在這裡定義
     // 更新科任教師選單
     function updateTeacherOptions() {
       const dept = deptSelect.value;
@@ -461,8 +461,8 @@
       if (roleSelect.value === '導師') {
         const currentClass = classSelect.value;
         const hrTeacher = getHomeroomTeacher(currentClass);
-        // 在班級與導師名字中間加上空格，讓排版更好看
-        scheduleTitle.textContent = `${currentClass} \u00A0\u00A0 導師：${hrTeacher}`;
+        // 在班級與導師名字中間加上空格，並將導師名字設定為可點擊開關 (藍色底線)
+        scheduleTitle.innerHTML = `${currentClass} \u00A0\u00A0 導師：<span onclick="toggleFocusMode()" class="text-blue-600 cursor-pointer underline underline-offset-4 decoration-blue-400 active:opacity-50 transition-opacity" title="點擊開啟/關閉聚焦模式">${hrTeacher}</span>`;
       } else {
         // 科任標題處理邏輯
         const rawValue = teacherSelect.value;
@@ -481,7 +481,7 @@
           suffix = ' 主任';
         }
 
-        scheduleTitle.textContent = name + suffix;
+        scheduleTitle.innerHTML = name + suffix; // 改用 innerHTML 確保格式一致
       }
       renderSchedule();
     }
@@ -530,6 +530,9 @@
       const currentClass = classSelect.value;
       const isTeacherView = roleSelect.value === '科任';
       
+      // 取出導師姓名 (用來判斷聚焦模式)
+      const hrTeacher = getHomeroomTeacher(currentClass);
+
       // 取出科任老師的純姓名 (用來比對資料庫)
       let currentTeacher = teacherSelect.value;
       if (currentTeacher && currentTeacher.includes('-')) {
@@ -575,30 +578,35 @@
               }
             }
 
+            // 新增：判斷是否要啟動淡化特效 (聚焦模式開啟 且 該節課不是導師上的)
+            // 將過渡動畫與透明度寫在 td 上，讓邊框與背景一起淡化
+            let fadeClass = 'transition-opacity duration-500 ease-in-out'; 
+            if (!isTeacherView && isFocusMode && cellData.teacher !== hrTeacher) {
+              fadeClass += ' opacity-20'; // 非導師的課，透明度降到 20%
+            }
+
             if (cellData.subject) {
-              // 新增跳轉邏輯與視覺提示 (字體放大至不破版的極限)
               let teacherHtml = '';
               if (!isTeacherView) {
-                // 導師視角：判斷老師是否為科任，若是則加上藍色底線與跳轉功能
+                // 導師視角
                 const deptInfo = findTeacherDept(cellData.teacher);
                 if (deptInfo) {
-                  // 移除 hover:text-blue-800 與 hover:underline，徹底解決手機觸控殘留深色與底線的問題
                   teacherHtml = `<div onclick="goToTeacher('${cellData.teacher}')" class="text-[12px] min-[400px]:text-[13px] md:text-[20px] text-blue-600 font-bold whitespace-nowrap overflow-hidden text-ellipsis mt-0.5 cursor-pointer rounded mx-1">${cellData.teacher}</div>`;
                 } else {
                   teacherHtml = `<div class="text-[12px] min-[400px]:text-[13px] md:text-[20px] text-gray-500 font-semibold whitespace-nowrap overflow-hidden text-ellipsis mt-0.5">${cellData.teacher}</div>`;
                 }
               } else {
-                // 科任視角：同樣移除 hover 效果避免殘影
+                // 科任視角
                 teacherHtml = `<div onclick="goToClass('${cellData.teacher}')" class="text-[12px] min-[400px]:text-[13px] md:text-[20px] text-blue-600 font-bold whitespace-nowrap overflow-hidden text-ellipsis mt-0.5 cursor-pointer rounded mx-1">${cellData.teacher}</div>`;
               }
 
-              // 課表科目字體放大至 text-[15px]~[16px]
-              html += `<td>
+              html += `<td class="${fadeClass}">
                          <div class="text-[15px] min-[400px]:text-[16px] md:text-[26px] font-bold text-gray-800 whitespace-nowrap overflow-hidden text-ellipsis">${cellData.subject}</div>
                          ${teacherHtml}
                        </td>`;
             } else {
-              html += `<td></td>`;
+              // 沒課的空格也一併加上淡化類別，這樣網格才會一致消失
+              html += `<td class="${fadeClass}"></td>`;
             }
           }
         }
@@ -609,6 +617,7 @@
 
     // 事件監聽綁定
     roleSelect.addEventListener('change', (e) => {
+      isFocusMode = false; // 切換身分時，強制關閉聚焦模式
       if (e.target.value === '導師') {
         classSelectWrapper.classList.remove('hidden');
         deptSelectWrapper.classList.add('hidden');
@@ -622,14 +631,21 @@
       updateTitle();
     });
 
-    classSelect.addEventListener('change', updateTitle);
+    classSelect.addEventListener('change', () => {
+      isFocusMode = false; // 切換班級時，強制關閉聚焦模式
+      updateTitle();
+    });
     
     deptSelect.addEventListener('change', () => {
+      isFocusMode = false; // 切換處室時，強制關閉聚焦模式
       updateTeacherOptions();
       updateTitle();
     });
     
-    teacherSelect.addEventListener('change', updateTitle);
+    teacherSelect.addEventListener('change', () => {
+      isFocusMode = false; // 切換老師時，強制關閉聚焦模式
+      updateTitle();
+    });
 
     // 正式啟動系統
     initDropdowns();
