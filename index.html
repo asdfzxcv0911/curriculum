@@ -524,8 +524,8 @@
       if (roleSelect.value === '導師') {
         const currentClass = classSelect.value;
         const hrTeacher = getHomeroomTeacher(currentClass);
-        // 恢復預設黑色字體，保留點擊特效，完全沒有底線或顏色提示 (彩蛋)
-        scheduleTitle.innerHTML = `<span onclick="toggleFocusMode()" class="cursor-pointer">${currentClass} &nbsp;&nbsp; 導師：${hrTeacher}</span>`;
+        // 修改：縮小班級與導師間的空格，並利用 relative 往左推移，同時在極小螢幕微調字體，完美避開分機重疊
+        scheduleTitle.innerHTML = `<span onclick="toggleFocusMode()" class="cursor-pointer relative right-3 min-[375px]:right-5 md:right-0 text-[21px] min-[375px]:text-2xl md:text-4xl">${currentClass} 導師：${hrTeacher}</span>`;
         targetTeacherName = hrTeacher;
       } else {
         // 科任標題處理邏輯
