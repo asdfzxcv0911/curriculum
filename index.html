@@ -59,17 +59,27 @@
       white-space: nowrap;
     }
 
+    /* 電腦版：放大表頭字體與間距 */
+    @media (min-width: 768px) {
+      th { font-size: 1.3rem; padding: 14px 8px; }
+    }
+
     td {
       background-color: #fff9f2;
       border: 2px dashed #f0d5b6;
       text-align: center;
       padding: 8px 2px;
       border-radius: 10px;
-      height: 65px;
+      height: 55px; /* 手機版：稍微縮減高度，確保一頁能塞下不用滑動 */
       vertical-align: middle;
       font-weight: 600;
       color: #5c4033;
       white-space: nowrap; /* 強制不換行，不跨行 */
+    }
+
+    /* 電腦版：加大格子高度 */
+    @media (min-width: 768px) {
+      td { height: 85px; }
     }
 
     .time-col {
@@ -108,12 +118,18 @@
       font-weight: 600;
     }
 
+    /* 電腦版：加大對角線表頭字體 */
+    @media (min-width: 768px) {
+      .diagonal-split .top-right { font-size: 1.1rem; top: 6px; right: 10px; }
+      .diagonal-split .bottom-left { font-size: 1.1rem; bottom: 6px; left: 10px; }
+    }
+
     select {
       font-family: 'Klee One', cursive;
       appearance: none;
       background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%236d4c41' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3C/polyline%3e%3C/svg%3e");
       background-repeat: no-repeat;
-      background-position: right 8px center;
+      background-position: right 4px center; /* 箭頭往右靠緊 */
       background-size: 0.9em;
     }
 
@@ -136,10 +152,10 @@
     <!-- 控制面板 (左:身份 中:細項 右:名字，無虛線) -->
     <div class="no-print flex flex-row gap-2 md:gap-4 items-end justify-center mb-4">
       
-      <!-- 身份選擇 -->
+      <!-- 身份選擇 (使用 w-auto 和縮減 padding 來消滅空白) -->
       <div class="flex flex-col gap-1">
         <label class="text-xs md:text-sm font-semibold text-gray-600 pl-1">身份</label>
-        <select id="roleSelect" class="w-24 md:w-32 px-2 md:px-4 py-1.5 bg-orange-50 border-2 border-orange-200 rounded-xl text-orange-900 focus:outline-none focus:border-orange-400 text-base">
+        <select id="roleSelect" class="w-auto pl-2 pr-6 py-1.5 bg-orange-50 border-2 border-orange-200 rounded-xl text-orange-900 focus:outline-none focus:border-orange-400 text-sm md:text-base font-bold">
           <option value="導師">導師</option>
           <option value="科任">科任</option>
         </select>
@@ -148,7 +164,7 @@
       <!-- 導師：班級選擇 -->
       <div id="classSelectWrapper" class="flex flex-col gap-1">
         <label class="text-xs md:text-sm font-semibold text-gray-600 pl-1">班級</label>
-        <select id="classSelect" class="w-28 md:w-40 px-2 md:px-4 py-1.5 bg-green-50 border-2 border-green-200 rounded-xl text-green-900 focus:outline-none focus:border-green-400 text-base">
+        <select id="classSelect" class="w-auto pl-2 pr-6 py-1.5 bg-green-50 border-2 border-green-200 rounded-xl text-green-900 focus:outline-none focus:border-green-400 text-sm md:text-base font-bold">
           <!-- JS 動態生成 -->
         </select>
       </div>
@@ -156,7 +172,7 @@
       <!-- 科任：處室選擇 -->
       <div id="deptSelectWrapper" class="flex flex-col gap-1 hidden">
         <label class="text-xs md:text-sm font-semibold text-gray-600 pl-1">處室</label>
-        <select id="deptSelect" class="w-28 md:w-40 px-2 md:px-4 py-1.5 bg-blue-50 border-2 border-blue-200 rounded-xl text-blue-900 focus:outline-none focus:border-blue-400 text-base">
+        <select id="deptSelect" class="w-auto pl-2 pr-6 py-1.5 bg-blue-50 border-2 border-blue-200 rounded-xl text-blue-900 focus:outline-none focus:border-blue-400 text-sm md:text-base font-bold">
           <option value="教務處">教務處</option>
           <option value="學務處">學務處</option>
           <option value="總務處">總務處</option>
@@ -168,7 +184,7 @@
       <!-- 科任：教師選擇 -->
       <div id="teacherSelectWrapper" class="flex flex-col gap-1 hidden">
         <label class="text-xs md:text-sm font-semibold text-gray-600 pl-1">名字</label>
-        <select id="teacherSelect" class="w-32 md:w-48 px-2 md:px-4 py-1.5 bg-purple-50 border-2 border-purple-200 rounded-xl text-purple-900 focus:outline-none focus:border-purple-400 text-base">
+        <select id="teacherSelect" class="w-auto pl-2 pr-6 py-1.5 bg-purple-50 border-2 border-purple-200 rounded-xl text-purple-900 focus:outline-none focus:border-purple-400 text-sm md:text-base font-bold">
           <!-- JS 動態生成 -->
         </select>
       </div>
@@ -224,9 +240,8 @@
       '純科任': ['音樂老師 A', '音樂老師 B', '美術老師', '英語老師', '自然老師']
     };
 
-    // 課表節次框架設定
+    // 課表節次框架設定 (已移除早自習)
     const timeSlots = [
-      { name: '早自習', time: '08:00-08:25', isBreak: false },
       { name: '第一節', time: '08:30-09:10', isBreak: false },
       { name: '第二節', time: '09:20-10:00', isBreak: false },
       { name: '第三節', time: '10:30-11:10', isBreak: false },
@@ -237,11 +252,10 @@
       { name: '第七節', time: '15:20-16:00', isBreak: false },
     ];
 
-    // 一年1班真實課表資料 (對應時間順序: 早自習, 第1節, 第2節, 第3節, 第4節, 午休, 第5節, 第6節, 第7節)
+    // 一年1班真實課表資料 (已移除早自習欄位)
     const grade1Class1Schedule = {
-      // 星期一到星期五 [早自習, 第1節, 第2節, 第3節, 第4節, 午休, 第5節, 第6節, 第7節]
+      // 星期一到星期五 [第1節, 第2節, 第3節, 第4節, 午休, 第5節, 第6節, 第7節]
       'MON': [
-        { subject: '', teacher: '' },
         { subject: '國語', teacher: '徐淑卿' },
         { subject: '數學', teacher: '徐淑卿' },
         { subject: '彈英', teacher: '盧岱岑' },
@@ -252,7 +266,6 @@
         { subject: '', teacher: '' }
       ],
       'TUE': [
-        { subject: '', teacher: '' },
         { subject: '國語', teacher: '徐淑卿' },
         { subject: '數學', teacher: '徐淑卿' },
         { subject: '體育', teacher: '李柏勳' },
@@ -263,7 +276,6 @@
         { subject: '彈性', teacher: '徐淑卿' }
       ],
       'WED': [
-        { subject: '', teacher: '' },
         { subject: '國語', teacher: '徐淑卿' },
         { subject: '數學', teacher: '徐淑卿' },
         { subject: '生活', teacher: '李柏勳' },
@@ -274,7 +286,6 @@
         { subject: '', teacher: '' }
       ],
       'THU': [
-        { subject: '', teacher: '' },
         { subject: '國語', teacher: '徐淑卿' },
         { subject: '健康', teacher: '邱子芸' },
         { subject: '體育', teacher: '李柏勳' },
@@ -285,7 +296,6 @@
         { subject: '', teacher: '' }
       ],
       'FRI': [
-        { subject: '', teacher: '' },
         { subject: '國語', teacher: '徐淑卿' },
         { subject: '數學', teacher: '徐淑卿' },
         { subject: '土本語', teacher: '葉玟孝' },
@@ -337,16 +347,16 @@
 
       timeSlots.forEach((slot, slotIndex) => {
         html += `<tr>`;
-        // 第一欄：節次與時間 (時間改為分行簡潔顯示)
+        // 第一欄：節次與時間 (加入響應式字體 md:text-base)
         let timeFormatted = slot.time.replace('-', '<br>');
         html += `<td class="time-col">
-                   <div class="font-bold text-xs">${slot.name}</div>
-                   <div class="text-[10px] text-gray-600">${timeFormatted}</div>
+                   <div class="font-bold text-xs md:text-base">${slot.name}</div>
+                   <div class="text-[10px] md:text-sm text-gray-600 mt-1">${timeFormatted}</div>
                  </td>`;
         
         // 午休跨 5 欄
         if (slot.isBreak) {
-          html += `<td colspan="5" class="lunch-break font-bold">午 🍽️ 餐 😴 午 💤 休</td>`;
+          html += `<td colspan="5" class="lunch-break font-bold md:text-2xl">午 🍽️ 餐 😴 午 💤 休</td>`;
         } else {
           // 星期一到星期五
           for (let i = 0; i < 5; i++) {
@@ -358,9 +368,10 @@
             }
 
             if (cellData.subject) {
+              // 電腦版加大字體 md:text-xl (科目) 與 md:text-base (老師)
               html += `<td>
-                         <div class="text-sm font-bold text-gray-800">${cellData.subject}</div>
-                         <div class="text-[11px] text-gray-500">${cellData.teacher}</div>
+                         <div class="text-sm md:text-xl font-bold text-gray-800">${cellData.subject}</div>
+                         <div class="text-[11px] md:text-base text-gray-500">${cellData.teacher}</div>
                        </td>`;
             } else {
               html += `<td></td>`;
