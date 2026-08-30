@@ -83,6 +83,11 @@
       overflow: hidden; /* 防止內容撐開格子 */
     }
 
+    /* 新增：當切換到資源班時，稍微縮小格子高度，保證早自習加進去後總高度不變，免滑動！ */
+    .resource-table td {
+      height: 52px;
+    }
+
     /* 電腦版：放大表頭與格子高度 */
     @media (min-width: 768px) {
       th { font-size: 1.3rem; padding: 12px 6px; border-radius: 12px; }
@@ -255,16 +260,16 @@
       '純科任': ['陳韶絃', '李柏勳', '黃上乘', '葉玟孝', '吳建緯', '盧岱岑']
     };
 
-    // 課表節次框架設定 (已移除早自習)
+    // 課表節次框架設定 (新增 origIndex 確保與常態班級資料對齊，不會因為多出早自習而錯亂)
     const timeSlots = [
-      { name: '第一節', time: '08:30-09:10', isBreak: false },
-      { name: '第二節', time: '09:20-10:00', isBreak: false },
-      { name: '第三節', time: '10:30-11:10', isBreak: false },
-      { name: '第四節', time: '11:20-12:00', isBreak: false },
-      { name: '午餐午休', time: '12:00-13:35', isBreak: true },
-      { name: '第五節', time: '13:40-14:20', isBreak: false },
-      { name: '第六節', time: '14:30-15:10', isBreak: false },
-      { name: '第七節', time: '15:20-16:00', isBreak: false },
+      { name: '第一節', time: '08:30-09:10', isBreak: false, origIndex: 0 },
+      { name: '第二節', time: '09:20-10:00', isBreak: false, origIndex: 1 },
+      { name: '第三節', time: '10:30-11:10', isBreak: false, origIndex: 2 },
+      { name: '第四節', time: '11:20-12:00', isBreak: false, origIndex: 3 },
+      { name: '午餐午休', time: '12:00-13:35', isBreak: true, origIndex: 4 },
+      { name: '第五節', time: '13:40-14:20', isBreak: false, origIndex: 5 },
+      { name: '第六節', time: '14:30-15:10', isBreak: false, origIndex: 6 },
+      { name: '第七節', time: '15:20-16:00', isBreak: false, origIndex: 7 },
     ];
 
     // 儲存各班級真實課表的資料庫 (全校 19 個班級)
@@ -540,7 +545,22 @@
         currentTeacher = currentTeacher.split('-')[1];
       }
 
-      timeSlots.forEach((slot, slotIndex) => {
+      // 判斷是否為資源班：如果是，幫表格套用縮小高度的專屬設計
+      const isResource = isTeacherView && deptSelect.value === '資源班';
+      const tableEl = document.querySelector('table');
+      if (isResource) {
+        tableEl.classList.add('resource-table');
+      } else {
+        tableEl.classList.remove('resource-table');
+      }
+
+      // 動態產生這張課表要顯示的節次 (資源班專屬早自習，時間暫設 07:50-08:30)
+      let activeTimeSlots = [...timeSlots];
+      if (isResource) {
+        activeTimeSlots.unshift({ name: '早自習', time: '07:50-08:30', isBreak: false, origIndex: -1 });
+      }
+
+      activeTimeSlots.forEach((slot) => {
         html += `<tr>`;
         // 第一欄：節次與時間 (字體同步微調放大)
         let timeFormatted = slot.time.replace('-', '<br>');
@@ -558,46 +578,31 @@
             let dayKey = days[i];
             let cellData = { subject: '', teacher: '' };
 
-            if (!isTeacherView) {
-              // 【導師視角】：直接顯示該班級的科目與授課老師
-              if (classSchedules[currentClass] && classSchedules[currentClass][dayKey] && classSchedules[currentClass][dayKey][slotIndex]) {
-                const item = classSchedules[currentClass][dayKey][slotIndex];
-                cellData = { subject: item.s, teacher: item.t || '' };
-              }
-            } else {
-              // 【科任視角】：掃描全校資料庫，找出該老師在哪個班級上課！
-              for (const [className, schedule] of Object.entries(classSchedules)) {
-                if (schedule[dayKey] && schedule[dayKey][slotIndex]) {
-                  const item = schedule[dayKey][slotIndex];
-                  // 如果這節課是這個老師上的
-                  if (item.t === currentTeacher) {
-                    // 科任課表的邏輯反轉：上面顯示科目，下面顯示「要去上課的班級」
-                    cellData = { subject: item.s, teacher: className }; 
-                    break; // 找到了就跳出這節課的尋找迴圈
+            // 只有常態節次 (origIndex >= 0) 才會去全校資料庫裡撈資料，早自習維持空白獨立
+            if (slot.origIndex >= 0) {
+              if (!isTeacherView) {
+                // 【導師視角】：直接顯示該班級的科目與授課老師
+                if (classSchedules[currentClass] && classSchedules[currentClass][dayKey] && classSchedules[currentClass][dayKey][slot.origIndex]) {
+                  const item = classSchedules[currentClass][dayKey][slot.origIndex];
+                  cellData = { subject: item.s, teacher: item.t || '' };
+                }
+              } else {
+                // 【科任視角】：掃描全校資料庫，找出該老師在哪個班級上課！
+                for (const [className, schedule] of Object.entries(classSchedules)) {
+                  if (schedule[dayKey] && schedule[dayKey][slot.origIndex]) {
+                    const item = schedule[dayKey][slot.origIndex];
+                    // 如果這節課是這個老師上的
+                    if (item.t === currentTeacher) {
+                      // 科任課表的邏輯反轉：上面顯示科目，下面顯示「要去上課的班級」
+                      cellData = { subject: item.s, teacher: className }; 
+                      break; // 找到了就跳出這節課的尋找迴圈
+                    }
                   }
                 }
               }
             }
 
-            // 新增：判斷是否要啟動淡化特效 (聚焦模式開啟 且 該節課不是導師上的)
-            // 將過渡動畫與透明度寫在 td 上，讓邊框與背景一起淡化
-            let fadeClass = 'transition-opacity duration-500 ease-in-out'; 
-            if (!isTeacherView && isFocusMode && cellData.teacher !== hrTeacher) {
-              fadeClass += ' opacity-10'; // 調整：將透明度從 20% 降到 10%，讓非導師的課變得超級淡
-            }
-
-            if (cellData.subject) {
-              let teacherHtml = '';
-              if (!isTeacherView) {
-                // 導師視角
-                const deptInfo = findTeacherDept(cellData.teacher);
-                if (deptInfo) {
-                  // 移除藍色與粗體，恢復成與一般文字相同的 text-gray-500 font-semibold，隱藏式保留點擊功能
-                  teacherHtml = `<div onclick="goToTeacher('${cellData.teacher}')" class="text-[12px] min-[400px]:text-[13px] md:text-[20px] text-gray-500 font-semibold whitespace-nowrap overflow-hidden text-ellipsis mt-0.5 cursor-pointer rounded mx-1">${cellData.teacher}</div>`;
-                } else {
-                  teacherHtml = `<div class="text-[12px] min-[400px]:text-[13px] md:text-[20px] text-gray-500 font-semibold whitespace-nowrap overflow-hidden text-ellipsis mt-0.5">${cellData.teacher}</div>`;
-                }
-              } else {
+            // 判斷是否要啟動淡化特效 (聚焦模式開啟 且 該節課不是導師上的)
                 // 科任視角
                 // 移除藍色與粗體，恢復成與一般文字相同的 text-gray-500 font-semibold，隱藏式保留點擊功能
                 teacherHtml = `<div onclick="goToClass('${cellData.teacher}')" class="text-[12px] min-[400px]:text-[13px] md:text-[20px] text-gray-500 font-semibold whitespace-nowrap overflow-hidden text-ellipsis mt-0.5 cursor-pointer rounded mx-1">${cellData.teacher}</div>`;
