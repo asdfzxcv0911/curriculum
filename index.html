@@ -33,6 +33,7 @@
       color: #4a4a4a;
       margin: 0;
       padding: 6px;
+      -webkit-tap-highlight-color: transparent; /* 消除手機點擊後的反灰/反藍殘影 */
     }
 
     .app-container {
@@ -537,11 +538,11 @@
 
       timeSlots.forEach((slot, slotIndex) => {
         html += `<tr>`;
-        // 第一欄：節次與時間
+        // 第一欄：節次與時間 (字體同步微調放大)
         let timeFormatted = slot.time.replace('-', '<br>');
         html += `<td class="time-col">
-                   <div class="font-bold text-[11px] md:text-xl">${slot.name}</div>
-                   <div class="text-[9px] md:text-sm text-gray-600 mt-1 leading-tight">${timeFormatted}</div>
+                   <div class="font-bold text-[13px] md:text-2xl">${slot.name}</div>
+                   <div class="text-[10px] md:text-base text-gray-600 mt-1 leading-tight">${timeFormatted}</div>
                  </td>`;
         
         // 午休
@@ -575,24 +576,25 @@
             }
 
             if (cellData.subject) {
-              // 新增跳轉邏輯與視覺提示
+              // 新增跳轉邏輯與視覺提示 (字體放大至不破版的極限)
               let teacherHtml = '';
               if (!isTeacherView) {
                 // 導師視角：判斷老師是否為科任，若是則加上藍色底線與跳轉功能
                 const deptInfo = findTeacherDept(cellData.teacher);
                 if (deptInfo) {
-                  teacherHtml = `<div onclick="goToTeacher('${cellData.teacher}')" class="text-[10px] md:text-lg text-blue-600 font-bold whitespace-nowrap overflow-hidden text-ellipsis mt-0.5 cursor-pointer hover:text-blue-800 hover:underline active:bg-blue-50 rounded mx-1 transition-colors">${cellData.teacher}</div>`;
+                  // 移除 active 殘留設定，並將字體放大至 text-[12px]~[13px]
+                  teacherHtml = `<div onclick="goToTeacher('${cellData.teacher}')" class="text-[12px] min-[400px]:text-[13px] md:text-[20px] text-blue-600 font-bold whitespace-nowrap overflow-hidden text-ellipsis mt-0.5 cursor-pointer hover:text-blue-800 hover:underline rounded mx-1 transition-colors">${cellData.teacher}</div>`;
                 } else {
-                  teacherHtml = `<div class="text-[9px] md:text-lg text-gray-500 whitespace-nowrap overflow-hidden text-ellipsis mt-0.5">${cellData.teacher}</div>`;
+                  teacherHtml = `<div class="text-[12px] min-[400px]:text-[13px] md:text-[20px] text-gray-500 font-semibold whitespace-nowrap overflow-hidden text-ellipsis mt-0.5">${cellData.teacher}</div>`;
                 }
               } else {
                 // 科任視角：班級名稱加上藍色底線與跳轉功能
-                teacherHtml = `<div onclick="goToClass('${cellData.teacher}')" class="text-[10px] md:text-lg text-blue-600 font-bold whitespace-nowrap overflow-hidden text-ellipsis mt-0.5 cursor-pointer hover:text-blue-800 hover:underline active:bg-blue-50 rounded mx-1 transition-colors">${cellData.teacher}</div>`;
+                teacherHtml = `<div onclick="goToClass('${cellData.teacher}')" class="text-[12px] min-[400px]:text-[13px] md:text-[20px] text-blue-600 font-bold whitespace-nowrap overflow-hidden text-ellipsis mt-0.5 cursor-pointer hover:text-blue-800 hover:underline rounded mx-1 transition-colors">${cellData.teacher}</div>`;
               }
 
-              // 強制單行、超出隱藏，保持表格完美比例
+              // 課表科目字體放大至 text-[15px]~[16px]
               html += `<td>
-                         <div class="text-[13px] md:text-2xl font-bold text-gray-800 whitespace-nowrap overflow-hidden text-ellipsis">${cellData.subject}</div>
+                         <div class="text-[15px] min-[400px]:text-[16px] md:text-[26px] font-bold text-gray-800 whitespace-nowrap overflow-hidden text-ellipsis">${cellData.subject}</div>
                          ${teacherHtml}
                        </td>`;
             } else {
