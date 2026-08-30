@@ -248,6 +248,49 @@
   </div>
 
   <script>
+    // ==========================================
+    // 隱藏鎖定邏輯與本地記憶設定
+    // ==========================================
+    const PASSCODE = '8016837';
+    const lockOverlay = document.getElementById('lockOverlay');
+    const loginBox = document.getElementById('loginBox');
+    const passcodeInput = document.getElementById('passcodeInput');
+    const errorMsg = document.getElementById('errorMsg');
+
+    // 檢查瀏覽器是否已經有解鎖紀錄 (若有，直接隱藏遮罩)
+    if (localStorage.getItem('erlingUnlocked') === 'true') {
+      lockOverlay.style.display = 'none';
+    }
+
+    // 點擊右下角，顯示輸入框
+    window.showLoginBox = function() {
+      loginBox.classList.remove('hidden');
+      passcodeInput.focus();
+    };
+
+    // 驗證密碼
+    window.checkPasscode = function() {
+      if (passcodeInput.value === PASSCODE) {
+        localStorage.setItem('erlingUnlocked', 'true'); // 記住這台裝置
+        lockOverlay.style.opacity = '0'; // 淡出特效
+        setTimeout(() => {
+          lockOverlay.style.display = 'none';
+        }, 500);
+      } else {
+        errorMsg.classList.remove('hidden'); // 顯示錯誤
+        passcodeInput.value = ''; // 清空輸入框
+        passcodeInput.focus();
+      }
+    };
+
+    // 支援手機或電腦按 Enter 鍵直接送出
+    passcodeInput.addEventListener('keypress', function (e) {
+      if (e.key === 'Enter') {
+        checkPasscode();
+      }
+    });
+    // ==========================================
+
     // 班級資料設定
     const classOptions = [
       '一年1班', '一年2班', '一年3班',
