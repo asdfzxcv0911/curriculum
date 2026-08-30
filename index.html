@@ -578,31 +578,38 @@
             let dayKey = days[i];
             let cellData = { subject: '', teacher: '' };
 
-            // 只有常態節次 (origIndex >= 0) 才會去全校資料庫裡撈資料，早自習維持空白獨立
-            if (slot.origIndex >= 0) {
-              if (!isTeacherView) {
-                // 【導師視角】：直接顯示該班級的科目與授課老師
-                if (classSchedules[currentClass] && classSchedules[currentClass][dayKey] && classSchedules[currentClass][dayKey][slot.origIndex]) {
-                  const item = classSchedules[currentClass][dayKey][slot.origIndex];
-                  cellData = { subject: item.s, teacher: item.t || '' };
-                }
-              } else {
-                // 【科任視角】：掃描全校資料庫，找出該老師在哪個班級上課！
-                for (const [className, schedule] of Object.entries(classSchedules)) {
-                  if (schedule[dayKey] && schedule[dayKey][slot.origIndex]) {
-                    const item = schedule[dayKey][slot.origIndex];
-                    // 如果這節課是這個老師上的
-                    if (item.t === currentTeacher) {
-                      // 科任課表的邏輯反轉：上面顯示科目，下面顯示「要去上課的班級」
-                      cellData = { subject: item.s, teacher: className }; 
-                      break; // 找到了就跳出這節課的尋找迴圈
+            if (isResource) {
+              // 【資源班專屬】：直接讀取 resourceSchedules 的資料 (包含 -1 早自習)
+              if (resourceSchedules[currentTeacher] && resourceSchedules[currentTeacher][dayKey] && resourceSchedules[currentTeacher][dayKey][slot.origIndex]) {
+                const item = resourceSchedules[currentTeacher][dayKey][slot.origIndex];
+                cellData = { subject: item.s, teacher: item.t || '' };
+              }
+            } else {
+              // 【常態班級與一般科任】：排除早自習 (-1)，只抓常態節次 (0~7)
+              if (slot.origIndex >= 0) {
+                if (!isTeacherView) {
+                  // 【導師視角】：直接顯示該班級的科目與授課老師
+                  if (classSchedules[currentClass] && classSchedules[currentClass][dayKey] && classSchedules[currentClass][dayKey][slot.origIndex]) {
+                    const item = classSchedules[currentClass][dayKey][slot.origIndex];
+                    cellData = { subject: item.s, teacher: item.t || '' };
+                  }
+                } else {
+                  // 【科任視角】：掃描全校資料庫，找出該老師在哪個班級上課
+                  for (const [className, schedule] of Object.entries(classSchedules)) {
+                    if (schedule[dayKey] && schedule[dayKey][slot.origIndex]) {
+                      const item = schedule[dayKey][slot.origIndex];
+                      // 如果這節課是這個老師上的
+                      if (item.t === currentTeacher) {
+                        cellData = { subject: item.s, teacher: className }; 
+                        break; 
+                      }
                     }
                   }
                 }
               }
             }
 
-            // 開始繪製單一格子 (修復語法錯誤的區塊)
+            // 開始繪製單一格子
             if (cellData.subject || cellData.teacher) {
               // 判斷是否要啟動淡化特效 (聚焦模式開啟 且 該節課不是導師上的)
               let fadeClass = '';
