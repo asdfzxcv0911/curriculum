@@ -307,35 +307,35 @@
       ]
     };
 
-    // DOM 元素綁定
-    const roleSelect = document.getElementById('roleSelect');
-    const classSelectWrapper = document.getElementById('classSelectWrapper');
-    const classSelect = document.getElementById('classSelect');
-    const deptSelectWrapper = document.getElementById('deptSelectWrapper');
-    const deptSelect = document.getElementById('deptSelect');
-    const teacherSelectWrapper = document.getElementById('teacherSelectWrapper');
-    const teacherSelect = document.getElementById('teacherSelect');
-    const scheduleTitle = document.getElementById('scheduleTitle');
-    const scheduleBody = document.getElementById('scheduleBody');
-
-    function initDropdowns() {
-      classSelect.innerHTML = classOptions.map(c => `<option value="${c}">${c}</option>`).join('');
-      updateTeacherOptions();
-      renderSchedule();
-      updateTitle();
-    }
-
+    // 更新科任教師選單
     function updateTeacherOptions() {
       const dept = deptSelect.value;
       const teachers = subjectTeachers[dept] || [];
       teacherSelect.innerHTML = teachers.map(t => `<option value="${t}">${t}</option>`).join('');
     }
 
+    // 更新課表標題
     function updateTitle() {
       if (roleSelect.value === '導師') {
         scheduleTitle.textContent = classSelect.value;
       } else {
-        scheduleTitle.textContent = teacherSelect.value;
+        // 科任教師標題處理邏輯
+        const rawValue = teacherSelect.value;
+        let name = rawValue;
+        let suffix = ' 老師'; // 預設稱呼為老師
+
+        // 如果字串包含 '-'，代表是「職稱-姓名」格式，將其切割並只取後面的姓名
+        if (rawValue.includes('-')) {
+          name = rawValue.split('-')[1];
+        }
+
+        // 如果原本的字串裡面包含「主任」兩個字，就把稱呼改成主任
+        if (rawValue.includes('主任')) {
+          suffix = ' 主任';
+        }
+
+        // 組合姓名與稱呼，中間空一格
+        scheduleTitle.textContent = name + suffix;
       }
       renderSchedule();
     }
