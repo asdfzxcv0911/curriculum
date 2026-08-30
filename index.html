@@ -647,6 +647,18 @@
       updateTitle();
     });
 
+    // 系統初始化函數：負責把班級與老師名單塞進選單，並畫出第一張課表
+    function initDropdowns() {
+      // 1. 動態生成班級下拉選單
+      classSelect.innerHTML = classOptions.map(cls => `<option value="${cls}">${cls}</option>`).join('');
+      
+      // 2. 動態生成預設處室的老師選單
+      updateTeacherOptions();
+      
+      // 3. 更新標題並畫出第一張課表 (這會觸發 renderSchedule)
+      updateTitle();
+    }
+
     // 正式啟動系統
     initDropdowns();
   </script>
