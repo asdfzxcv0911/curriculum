@@ -582,14 +582,14 @@
                 // 導師視角：判斷老師是否為科任，若是則加上藍色底線與跳轉功能
                 const deptInfo = findTeacherDept(cellData.teacher);
                 if (deptInfo) {
-                  // 移除 active 殘留設定，並將字體放大至 text-[12px]~[13px]
-                  teacherHtml = `<div onclick="goToTeacher('${cellData.teacher}')" class="text-[12px] min-[400px]:text-[13px] md:text-[20px] text-blue-600 font-bold whitespace-nowrap overflow-hidden text-ellipsis mt-0.5 cursor-pointer hover:text-blue-800 hover:underline rounded mx-1 transition-colors">${cellData.teacher}</div>`;
+                  // 移除 hover:text-blue-800 與 hover:underline，徹底解決手機觸控殘留深色與底線的問題
+                  teacherHtml = `<div onclick="goToTeacher('${cellData.teacher}')" class="text-[12px] min-[400px]:text-[13px] md:text-[20px] text-blue-600 font-bold whitespace-nowrap overflow-hidden text-ellipsis mt-0.5 cursor-pointer rounded mx-1">${cellData.teacher}</div>`;
                 } else {
                   teacherHtml = `<div class="text-[12px] min-[400px]:text-[13px] md:text-[20px] text-gray-500 font-semibold whitespace-nowrap overflow-hidden text-ellipsis mt-0.5">${cellData.teacher}</div>`;
                 }
               } else {
-                // 科任視角：班級名稱加上藍色底線與跳轉功能
-                teacherHtml = `<div onclick="goToClass('${cellData.teacher}')" class="text-[12px] min-[400px]:text-[13px] md:text-[20px] text-blue-600 font-bold whitespace-nowrap overflow-hidden text-ellipsis mt-0.5 cursor-pointer hover:text-blue-800 hover:underline rounded mx-1 transition-colors">${cellData.teacher}</div>`;
+                // 科任視角：同樣移除 hover 效果避免殘影
+                teacherHtml = `<div onclick="goToClass('${cellData.teacher}')" class="text-[12px] min-[400px]:text-[13px] md:text-[20px] text-blue-600 font-bold whitespace-nowrap overflow-hidden text-ellipsis mt-0.5 cursor-pointer rounded mx-1">${cellData.teacher}</div>`;
               }
 
               // 課表科目字體放大至 text-[15px]~[16px]
