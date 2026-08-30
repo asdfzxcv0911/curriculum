@@ -219,7 +219,7 @@
     <div class="text-center mb-2 md:mb-4 relative w-full flex items-end justify-center">
       <h1 id="scheduleTitle" class="text-2xl md:text-4xl font-bold text-gray-800 tracking-wider w-full">一年1班</h1>
       <!-- 絕對定位的分機號碼，貼齊右邊 -->
-      <div id="extNumber" class="absolute right-0 bottom-0 text-[11px] min-[375px]:text-sm md:text-lg font-bold text-gray-600 mb-0.5 md:mb-1 pr-1"></div>
+      <div id="extNumber" class="absolute right-0 bottom-0 text-right text-[11px] min-[375px]:text-sm md:text-lg font-bold text-gray-600 mb-0.5 md:mb-1 pr-1"></div>
     </div>
 
     <!-- 課表表格 -->
@@ -474,6 +474,15 @@
       '陳怡如': '742', '施錦玲': '743', '陳宣廷': '751', '高婉禎': '752',
       '江義靖': '753', '廖邛菁': '754', '曾佳瑩': '761', '陳詩宜': '762',
       '李沛玲': '763'
+    };
+
+    // 科任教室位置資料庫
+    const teacherClassrooms = {
+      '盧岱岑': '語言教室A', '吳建緯': '語言教室B', '陳韶絃': '美勞教室A',
+      '葉玟孝': '社會教室', '黃上乘': '自然教室A', '李柏勳': '校本教室',
+      '楊淑雯': '社會教室', '施雅芸': '多目的B', '林怡伶': '語言教室C',
+      '陳宏漳': '4F電腦B', '胡芝琳': '美勞教室B', '邱子芸': '自然教室C',
+      '邱文彥': '自然教室D', '周怡君': '音樂教室'
     };
 
     // 記錄是否開啟導師聚焦模式
