@@ -218,8 +218,8 @@
     <!-- 中間大標題：班級名稱 / 老師尊稱 -->
     <div class="text-center mb-2 md:mb-4 relative w-full flex items-end justify-center">
       <h1 id="scheduleTitle" class="text-2xl md:text-4xl font-bold text-gray-800 tracking-wider w-full">一年1班</h1>
-      <!-- 絕對定位的分機號碼，貼齊右邊 -->
-      <div id="extNumber" class="absolute right-0 bottom-0 text-right text-[11px] min-[375px]:text-sm md:text-lg font-bold text-gray-600 mb-0.5 md:mb-1 pr-1"></div>
+      <!-- 絕對定位的分機號碼，拿掉 margin 讓它完美貼齊底線，移除 text-right 改交給 Grid 處理 -->
+      <div id="extNumber" class="absolute right-0 bottom-0 text-[11px] min-[375px]:text-sm md:text-lg font-bold text-gray-600 pr-1 pb-[2px]"></div>
     </div>
 
     <!-- 課表表格 -->
@@ -552,21 +552,21 @@
         }
 
         scheduleTitle.innerHTML = name + suffix; 
-        targetTeacherName = name;
-      }
-
-      // 查詢並更新分機號碼與教室顯示 (絕對定位靠右，雙層堆疊)
-      let infoHtml = '';
+      // 查詢並更新分機號碼與教室顯示 (使用 Grid 網格排版，讓前綴與數值各自對齊)
+      let infoHtml = '<div class="grid grid-cols-[max-content_max-content] gap-x-1 text-left">';
       
       // 若為科任且資料庫中有教室位置，則顯示在第一行
       if (roleSelect.value === '科任' && teacherClassrooms[targetTeacherName]) {
-        infoHtml += `<div>教室：${teacherClassrooms[targetTeacherName]}</div>`;
+        // tracking-tight 讓較長的字（如教室位置）能微調字距，彈性適應
+        infoHtml += `<div>教室：</div><div class="whitespace-nowrap tracking-tight">${teacherClassrooms[targetTeacherName]}</div>`;
       }
       
       // 顯示分機號碼 (顯示在第二行)
       if (teacherExtensions[targetTeacherName]) {
-        infoHtml += `<div>分機：${teacherExtensions[targetTeacherName]}</div>`;
+        infoHtml += `<div>分機：</div><div class="whitespace-nowrap tracking-tight">${teacherExtensions[targetTeacherName]}</div>`;
       }
+
+      infoHtml += '</div>';
 
       extNumber.innerHTML = infoHtml;
 
