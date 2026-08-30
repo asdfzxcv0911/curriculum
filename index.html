@@ -461,8 +461,8 @@
       if (roleSelect.value === '導師') {
         const currentClass = classSelect.value;
         const hrTeacher = getHomeroomTeacher(currentClass);
-        // 在班級與導師名字中間加上空格，並將導師名字設定為可點擊開關 (藍色底線)
-        scheduleTitle.innerHTML = `${currentClass} \u00A0\u00A0 導師：<span onclick="toggleFocusMode()" class="text-blue-600 cursor-pointer underline underline-offset-4 decoration-blue-400 active:opacity-50 transition-opacity" title="點擊開啟/關閉聚焦模式">${hrTeacher}</span>`;
+        // 移除藍色字體與底線，恢復預設外觀，隱藏式保留點擊開關 (onclick)
+        scheduleTitle.innerHTML = `${currentClass} \u00A0\u00A0 導師：<span onclick="toggleFocusMode()" class="cursor-pointer active:opacity-50 transition-opacity" title="點擊開啟/關閉聚焦模式">${hrTeacher}</span>`;
       } else {
         // 科任標題處理邏輯
         const rawValue = teacherSelect.value;
@@ -582,7 +582,7 @@
             // 將過渡動畫與透明度寫在 td 上，讓邊框與背景一起淡化
             let fadeClass = 'transition-opacity duration-500 ease-in-out'; 
             if (!isTeacherView && isFocusMode && cellData.teacher !== hrTeacher) {
-              fadeClass += ' opacity-20'; // 非導師的課，透明度降到 20%
+              fadeClass += ' opacity-10'; // 調整：將透明度從 20% 降到 10%，讓非導師的課變得超級淡
             }
 
             if (cellData.subject) {
@@ -591,13 +591,15 @@
                 // 導師視角
                 const deptInfo = findTeacherDept(cellData.teacher);
                 if (deptInfo) {
-                  teacherHtml = `<div onclick="goToTeacher('${cellData.teacher}')" class="text-[12px] min-[400px]:text-[13px] md:text-[20px] text-blue-600 font-bold whitespace-nowrap overflow-hidden text-ellipsis mt-0.5 cursor-pointer rounded mx-1">${cellData.teacher}</div>`;
+                  // 移除藍色與粗體，恢復成與一般文字相同的 text-gray-500 font-semibold，隱藏式保留點擊功能
+                  teacherHtml = `<div onclick="goToTeacher('${cellData.teacher}')" class="text-[12px] min-[400px]:text-[13px] md:text-[20px] text-gray-500 font-semibold whitespace-nowrap overflow-hidden text-ellipsis mt-0.5 cursor-pointer rounded mx-1">${cellData.teacher}</div>`;
                 } else {
                   teacherHtml = `<div class="text-[12px] min-[400px]:text-[13px] md:text-[20px] text-gray-500 font-semibold whitespace-nowrap overflow-hidden text-ellipsis mt-0.5">${cellData.teacher}</div>`;
                 }
               } else {
                 // 科任視角
-                teacherHtml = `<div onclick="goToClass('${cellData.teacher}')" class="text-[12px] min-[400px]:text-[13px] md:text-[20px] text-blue-600 font-bold whitespace-nowrap overflow-hidden text-ellipsis mt-0.5 cursor-pointer rounded mx-1">${cellData.teacher}</div>`;
+                // 移除藍色與粗體，恢復成與一般文字相同的 text-gray-500 font-semibold，隱藏式保留點擊功能
+                teacherHtml = `<div onclick="goToClass('${cellData.teacher}')" class="text-[12px] min-[400px]:text-[13px] md:text-[20px] text-gray-500 font-semibold whitespace-nowrap overflow-hidden text-ellipsis mt-0.5 cursor-pointer rounded mx-1">${cellData.teacher}</div>`;
               }
 
               html += `<td class="${fadeClass}">
