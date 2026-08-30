@@ -432,8 +432,8 @@
         'FRI': { '-1': {s: '特殊需求', t: '3'}, '0': {s: '特殊需求', t: '3'}, '1': {s: '', t: ''}, '2': {s: '', t: ''}, '3': {s: '', t: ''}, '5': {s: '數學', t: '4'}, '6': {s: '數學', t: '4'}, '7': {s: '', t: ''} }
       },
       '李介麟': {
-        'MON': { '-1': {s: '特需', t: '3'}, '0': {s: '', t: ''}, '1': {s: '', t: ''}, '2': {s: '', t: ''}, '3': {s: '', t: ''}, '5': {s: '', t: ''}, '6': {s: '', t: ''}, '7': {s: '特需', t: '3'}, '8': {s: '國語', t: '5'} },
-        'TUE': { '-1': {s: '國語', t: '5'}, '0': {s: '', t: ''}, '1': {s: '', t: ''}, '2': {s: '', t: ''}, '3': {s: '', t: ''}, '5': {s: '', t: ''}, '6': {s: '', t: ''}, '7': {s: '特需', t: '3'}, '8': {s: '數學', t: '5'} },
+        'MON': { '-1': {s: '特殊需求', t: '3'}, '0': {s: '', t: ''}, '1': {s: '', t: ''}, '2': {s: '', t: ''}, '3': {s: '', t: ''}, '5': {s: '', t: ''}, '6': {s: '', t: ''}, '7': {s: '特殊需求', t: '3'}, '8': {s: '國語', t: '5'} },
+        'TUE': { '-1': {s: '國語', t: '5'}, '0': {s: '', t: ''}, '1': {s: '', t: ''}, '2': {s: '', t: ''}, '3': {s: '', t: ''}, '5': {s: '', t: ''}, '6': {s: '', t: ''}, '7': {s: '特殊需求', t: '3'}, '8': {s: '數學', t: '5'} },
         'WED': { '-1': {s: '數學', t: '3'}, '0': {s: '國語', t: '3'}, '1': {s: '', t: ''}, '2': {s: '', t: ''}, '3': {s: '', t: ''}, '5': {s: '', t: ''}, '6': {s: '', t: ''}, '7': {s: '', t: ''}, '8': {s: '', t: ''} },
         'THU': { '-1': {s: '國語', t: '5'}, '0': {s: '國語', t: '3'}, '1': {s: '', t: ''}, '2': {s: '', t: ''}, '3': {s: '', t: ''}, '5': {s: '', t: ''}, '6': {s: '', t: ''}, '7': {s: '', t: ''}, '8': {s: '國語', t: '5'} },
         'FRI': { '-1': {s: '數學', t: '5'}, '0': {s: '', t: ''}, '1': {s: '', t: ''}, '2': {s: '', t: ''}, '3': {s: '', t: ''}, '5': {s: '國語', t: '3'}, '6': {s: '數學', t: '3'}, '7': {s: '數學', t: '3'}, '8': {s: '數學', t: '5'} }
@@ -671,14 +671,20 @@
               let teacherHtml = '';
               if (!isTeacherView) {
                 // 導師視角：點擊跳轉到該科任老師
-                teacherHtml = `<div onclick="goToTeacher('${cellData.teacher}')" class="text-[12px] min-[400px]:text-[13px] md:text-[20px] text-gray-500 font-semibold whitespace-nowrap overflow-hidden text-ellipsis mt-0.5 cursor-pointer rounded mx-1">${cellData.teacher}</div>`;
+                teacherHtml = `<div onclick="goToTeacher('${cellData.teacher}')" class="text-[12px] min-[400px]:text-[13px] md:text-[20px] text-gray-500 whitespace-nowrap overflow-hidden text-ellipsis mt-0.5 cursor-pointer rounded mx-1">${cellData.teacher}</div>`;
               } else {
                 // 科任視角：點擊跳轉到該班級
-                teacherHtml = `<div onclick="goToClass('${cellData.teacher}')" class="text-[12px] min-[400px]:text-[13px] md:text-[20px] text-gray-500 font-semibold whitespace-nowrap overflow-hidden text-ellipsis mt-0.5 cursor-pointer rounded mx-1">${cellData.teacher}</div>`;
+                teacherHtml = `<div onclick="goToClass('${cellData.teacher}')" class="text-[12px] min-[400px]:text-[13px] md:text-[20px] text-gray-500 whitespace-nowrap overflow-hidden text-ellipsis mt-0.5 cursor-pointer rounded mx-1">${cellData.teacher}</div>`;
+              }
+
+              // 新增：智慧判斷字數。如果科目字數 >= 4 (如：特殊需求、溝通訓練、社會技巧)，就單獨套用較小的字級，確保手機不截斷
+              let subjectFontSize = "text-[15px] min-[400px]:text-[16px] md:text-[26px]";
+              if (cellData.subject && cellData.subject.length >= 4) {
+                subjectFontSize = "text-[11px] min-[375px]:text-[12px] min-[400px]:text-[13px] md:text-[22px]";
               }
 
               html += `<td class="${fadeClass}">
-                         <div class="text-[15px] min-[400px]:text-[16px] md:text-[26px] font-bold text-gray-800 whitespace-nowrap overflow-hidden text-ellipsis">${cellData.subject}</div>
+                         <div class="${subjectFontSize} font-bold text-gray-800 whitespace-nowrap overflow-hidden text-ellipsis">${cellData.subject}</div>
                          ${teacherHtml}
                        </td>`;
             } else {
