@@ -584,23 +584,69 @@
       return homeroomTeacher;
     }
 
-    // 更新課表標題與分機號碼 (隱藏彩蛋版，並同步更新分機)
+    // ⭐ 新增：切換與儲存釘選最愛課表的邏輯
+    window.toggleFavorite = function(e) {
+      if (e) e.stopPropagation(); // 防止點擊星星時誤觸淡化模式
+      
+      const currentRole = roleSelect.value;
+      const savedFav = JSON.parse(localStorage.getItem('erlingFav') || 'null');
+      
+      // 判斷目前這張課表是不是已經被釘選了
+      let isMatch = false;
+      if (savedFav && savedFav.role === currentRole) {
+        if (currentRole === '導師' && savedFav.class === classSelect.value) isMatch = true;
+        if (currentRole === '科任' && savedFav.dept === deptSelect.value && savedFav.teacher === teacherSelect.value) isMatch = true;
+      }
+
+      if (isMatch) {
+        // 如果已經釘選，再點一次就取消釘選
+        localStorage.removeItem('erlingFav');
+      } else {
+        // 如果還沒釘選，就把它記進手機記憶裡
+        const newFav = {
+          role: currentRole,
+          class: classSelect.value,
+          dept: deptSelect.value,
+          teacher: teacherSelect.value
+        };
+        localStorage.setItem('erlingFav', JSON.stringify(newFav));
+      }
+      
+      updateTitle(); // 重新繪製標題，讓星星亮起或熄滅
+    };
+
+    // 更新課表標題與分機號碼 (含釘選星星機制與雙層對齊)
     function updateTitle() {
-      let targetTeacherName = ''; // 用來儲存最後要查詢分機的老師姓名
+      let targetTeacherName = ''; 
+
+      // 檢查目前的課表是否有被釘選，決定星星的狀態
+      const savedFav = JSON.parse(localStorage.getItem('erlingFav') || 'null');
+      let isFav = false;
+      if (savedFav && savedFav.role === roleSelect.value) {
+          if (roleSelect.value === '導師' && savedFav.class === classSelect.value) isFav = true;
+          if (roleSelect.value === '科任' && savedFav.dept === deptSelect.value && savedFav.teacher === teacherSelect.value) isFav = true;
+      }
+
+      // 星星的精緻圖案 (實心黃色 vs 空心灰色)
+      const starSvgSolid = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="#f59e0b" class="w-6 h-6 min-[375px]:w-7 min-[375px]:h-7 md:w-9 md:h-9 drop-shadow-sm"><path fill-rule="evenodd" d="M10.788 3.21c.448-1.077 1.976-1.077 2.424 0l2.082 5.007 5.404.433c1.164.093 1.636 1.545.749 2.305l-4.117 3.527 1.257 5.273c.271 1.136-.964 2.033-1.96 1.425L12 18.354 7.373 21.18c-.996.608-2.231-.29-1.96-1.425l1.257-5.273-4.117-3.527c-.887-.76-.415-2.212.749-2.305l5.404-.433 2.082-5.006z" clip-rule="evenodd" /></svg>`;
+      const starSvgOutline = `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="#cbd5e1" class="w-6 h-6 min-[375px]:w-7 min-[375px]:h-7 md:w-9 md:h-9 hover:stroke-yellow-400 transition-colors"><path stroke-linecap="round" stroke-linejoin="round" d="M11.48 3.499a.562.562 0 011.04 0l2.125 5.111a.563.563 0 00.475.345l5.518.442c.499.04.701.663.321.988l-4.204 3.602a.563.563 0 00-.182.557l1.285 5.385c.148.621-.531 1.12-1.097.82l-4.773-2.533a.563.563 0 00-.536 0l-4.773 2.533c-.566.3-.1245-.199.022-.82l1.285-5.385a.563.563 0 00-.182-.557l-4.204-3.602c-.38-.325-.178-.948.321-.988l5.518-.442a.563.563 0 00.475-.345L11.48 3.5z" /></svg>`;
+      const starBtn = `<span onclick="toggleFavorite(event)" class="cursor-pointer hover:scale-110 active:scale-95 transition-transform mr-1 md:mr-2" title="釘選這張課表">${isFav ? starSvgSolid : starSvgOutline}</span>`;
 
       if (roleSelect.value === '導師') {
         const currentClass = classSelect.value;
         const hrTeacher = getHomeroomTeacher(currentClass);
-        // 修改：將全形冒號「：」改為半形冒號「:」，節省空間，避免與分機重疊
-        scheduleTitle.innerHTML = `<span onclick="toggleFocusMode()" class="cursor-pointer relative right-3 min-[375px]:right-5 md:right-0 text-[21px] min-[375px]:text-2xl md:text-4xl">${currentClass} 導師:${hrTeacher}</span>`;
+        // 加入 inline-flex 讓星星與標題在同一行完美置中對齊
+        scheduleTitle.innerHTML = `<span class="relative right-4 min-[375px]:right-5 md:right-6 inline-flex items-center">
+          ${starBtn}
+          <span onclick="toggleFocusMode()" class="cursor-pointer text-[21px] min-[375px]:text-2xl md:text-4xl">${currentClass} 導師:${hrTeacher}</span>
+        </span>`;
         targetTeacherName = hrTeacher;
       } else {
-        // 科任標題處理邏輯
         const rawValue = teacherSelect.value;
         if (!rawValue) return; 
         
         let name = rawValue;
-        let suffix = ' 老師'; // 預設稱呼為老師
+        let suffix = ' 老師';
 
         if (rawValue.includes('-')) {
           name = rawValue.split('-')[1];
@@ -609,67 +655,32 @@
           suffix = ' 主任';
         }
 
-        scheduleTitle.innerHTML = name + suffix; 
+        scheduleTitle.innerHTML = `<span class="relative right-4 min-[375px]:right-5 md:right-6 inline-flex items-center">
+          ${starBtn}
+          <span onclick="toggleFocusMode()" class="cursor-pointer text-[21px] min-[375px]:text-2xl md:text-4xl">${name}${suffix}</span>
+        </span>`; 
         targetTeacherName = name;
       }
 
-      // 查詢並更新分機號碼與教室顯示 (使用 Grid 網格排版，讓前綴與數值各自對齊)
-      let infoHtml = '<div class="grid grid-cols-[max-content_max-content] gap-x-1 text-left">';
+      // 查詢並更新分機號碼與教室顯示 (雙層樓，網格對齊，沉底對齊)
+      let ext = teacherExtensions[targetTeacherName] || '無';
       
-      // 若為科任且資料庫中有教室位置，則顯示在第一行
       if (roleSelect.value === '科任' && teacherClassrooms[targetTeacherName]) {
-        // tracking-tight 讓較長的字（如教室位置）能微調字距，彈性適應
-        infoHtml += `<div>教室：</div><div class="whitespace-nowrap tracking-tight">${teacherClassrooms[targetTeacherName]}</div>`;
+        let room = teacherClassrooms[targetTeacherName];
+        // 採用 Grid 網格精準對齊冒號，並縮小字體
+        extNumber.innerHTML = `
+          <div class="grid grid-cols-[max-content_max-content] gap-x-0.5 md:gap-x-1 text-[9.5px] min-[375px]:text-[10px] md:text-[13px] text-left leading-tight">
+            <span class="text-right">教室:</span><span>${room}</span>
+            <span class="text-right">分機:</span><span>${ext}</span>
+          </div>`;
+      } else {
+        // 導師班級單純顯示分機
+        extNumber.innerHTML = `分機:${ext}`;
       }
-      
-      // 顯示分機號碼 (顯示在第二行)
-      if (teacherExtensions[targetTeacherName]) {
-        infoHtml += `<div>分機：</div><div class="whitespace-nowrap tracking-tight">${teacherExtensions[targetTeacherName]}</div>`;
-      }
 
-      infoHtml += '</div>';
-
-      extNumber.innerHTML = infoHtml;
-
-      renderSchedule();
+      // 最關鍵的一行：修復了被覆蓋掉的課表繪製指令！
+      renderSchedule(); 
     }
-
-    // 尋找老師所屬處室 (用於跳轉)
-    function findTeacherDept(teacherName) {
-      if (!teacherName) return null;
-      for (const dept in subjectTeachers) {
-        const found = subjectTeachers[dept].find(t => {
-           let tName = t.includes('-') ? t.split('-')[1] : t;
-           return tName === teacherName;
-        });
-        if (found) return { dept, originalName: found };
-      }
-      return null;
-    }
-
-    // 跳轉到特定科任老師課表
-    window.goToTeacher = function(teacherName) {
-      const info = findTeacherDept(teacherName);
-      if (!info) return; // 如果不是科任老師(例如導師)，就不動作
-      
-      roleSelect.value = '科任';
-      roleSelect.dispatchEvent(new Event('change')); // 觸發介面切換
-      
-      deptSelect.value = info.dept;
-      deptSelect.dispatchEvent(new Event('change'));
-      
-      teacherSelect.value = info.originalName;
-      teacherSelect.dispatchEvent(new Event('change'));
-    };
-
-    // 跳轉到特定班級課表
-    window.goToClass = function(className) {
-      roleSelect.value = '導師';
-      roleSelect.dispatchEvent(new Event('change')); // 觸發介面切換
-      
-      classSelect.value = className;
-      classSelect.dispatchEvent(new Event('change'));
-    };
 
     // 繪製課表
     function renderSchedule() {
@@ -810,11 +821,17 @@
         classSelectWrapper.classList.remove('hidden');
         deptSelectWrapper.classList.add('hidden');
         teacherSelectWrapper.classList.add('hidden');
+        
+        // 新增：切換回導師時，自動將選單歸零回最頂層的「一年1班」
+        classSelect.selectedIndex = 0;
       } else {
         classSelectWrapper.classList.add('hidden');
         deptSelectWrapper.classList.remove('hidden');
         teacherSelectWrapper.classList.remove('hidden');
-        updateTeacherOptions(); // 切換時自動更新老師名單
+        
+        // 新增：切換回科任時，自動將處室歸零回最頂層的「教務處」
+        deptSelect.selectedIndex = 0;
+        updateTeacherOptions(); // 切換時自動更新老師名單 (會自動抓取教務處的第一位：教務主任)
       }
       updateTitle();
     });
@@ -843,12 +860,61 @@
       // 2. 動態生成預設處室的老師選單
       updateTeacherOptions();
       
-      // 3. 更新標題並畫出第一張課表 (這會觸發 renderSchedule)
+      // 3. ⭐️ 讀取老師手機裡的「釘選記憶」，並自動切換到該課表
+      const savedFav = JSON.parse(localStorage.getItem('erlingFav') || 'null');
+      if (savedFav) {
+        roleSelect.value = savedFav.role;
+        
+        if (savedFav.role === '導師') {
+          classSelectWrapper.classList.remove('hidden');
+          deptSelectWrapper.classList.add('hidden');
+          teacherSelectWrapper.classList.add('hidden');
+          classSelect.value = savedFav.class;
+        } else {
+          classSelectWrapper.classList.add('hidden');
+          deptSelectWrapper.classList.remove('hidden');
+          teacherSelectWrapper.classList.remove('hidden');
+          
+          deptSelect.value = savedFav.dept;
+          updateTeacherOptions(); // 處室切換後，必須手動更新一次該處室的老師名單
+          teacherSelect.value = savedFav.teacher;
+        }
+      }
+      
+      // 4. 更新標題並畫出課表
       updateTitle();
     }
 
     // 正式啟動系統
     initDropdowns();
+
+    // ==========================================
+    // 快速跳轉功能 (點擊課表內的班級或老師即可跳轉)
+    // ==========================================
+    window.goToClass = function(className) {
+      if (!className || className === '') return;
+      roleSelect.value = '導師';
+      roleSelect.dispatchEvent(new Event('change'));
+      classSelect.value = className;
+      classSelect.dispatchEvent(new Event('change'));
+    };
+
+    window.goToTeacher = function(teacherName) {
+      if (!teacherName || teacherName === '') return;
+      for (const dept in subjectTeachers) {
+        // 模糊比對老師姓名 (處理含有職稱的字串)
+        const foundTeacher = subjectTeachers[dept].find(t => t.includes(teacherName));
+        if (foundTeacher) {
+          roleSelect.value = '科任';
+          roleSelect.dispatchEvent(new Event('change'));
+          deptSelect.value = dept;
+          deptSelect.dispatchEvent(new Event('change'));
+          teacherSelect.value = foundTeacher;
+          teacherSelect.dispatchEvent(new Event('change'));
+          return;
+        }
+      }
+    };
   </script>
 </body>
 </html>
