@@ -903,7 +903,13 @@
                 teacherHtml = `<div onclick="goToTeacher('${cellData.teacher}')" class="text-[12px] min-[400px]:text-[13px] md:text-[20px] text-gray-500 whitespace-nowrap overflow-hidden text-ellipsis mt-0.5 cursor-pointer rounded mx-1">${cellData.teacher}</div>`;
               } else {
                 // 科任視角：點擊跳轉到該班級 (隱藏提示，純灰色)
-                teacherHtml = `<div onclick="goToClass('${cellData.teacher}')" class="text-[12px] min-[400px]:text-[13px] md:text-[20px] text-gray-500 whitespace-nowrap overflow-hidden text-ellipsis mt-0.5 cursor-pointer rounded mx-1">${cellData.teacher}</div>`;
+                if (isResource) {
+                  // 資源班專屬：徹底移除跳轉功能與手指圖示，並加上 pointer-events-none 強制阻斷點擊
+                  teacherHtml = `<div class="text-[12px] min-[400px]:text-[13px] md:text-[20px] text-gray-500 whitespace-nowrap overflow-hidden text-ellipsis mt-0.5 rounded mx-1 pointer-events-none">${cellData.teacher}</div>`;
+                } else {
+                  // 一般科任：保留點擊跳轉班級
+                  teacherHtml = `<div onclick="goToClass('${cellData.teacher}')" class="text-[12px] min-[400px]:text-[13px] md:text-[20px] text-gray-500 whitespace-nowrap overflow-hidden text-ellipsis mt-0.5 cursor-pointer rounded mx-1">${cellData.teacher}</div>`;
+                }
               }
 
               // 新增：智慧判斷字數。如果科目字數 >= 4 (如：特殊需求、溝通訓練、社會技巧)，就單獨套用較小的字級，確保手機不截斷
@@ -936,8 +942,8 @@
         deptSelectWrapper.classList.add('hidden');
         teacherSelectWrapper.classList.add('hidden');
         
-        // 新增：切換回導師時，自動將選單歸零回「一年1班」
-        classSelect.value = '一年1班';
+        // 修改：切換回導師時，自動將選單歸零回最上方的「👑 一年級總表」
+        classSelect.value = '👑 一年級總表';
       } else {
         classSelectWrapper.classList.add('hidden');
         deptSelectWrapper.classList.remove('hidden');
@@ -1007,6 +1013,10 @@
     // ==========================================
     window.goToClass = function(className) {
       if (!className || className === '') return;
+      
+      // 新增防呆機制：如果傳入的不是正常的班級名稱（例如資源班的 1A, 3 等），就直接忽略不跳轉
+      if (!className.includes('班')) return; 
+      
       roleSelect.value = '導師';
       roleSelect.dispatchEvent(new Event('change'));
       classSelect.value = className;
