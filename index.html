@@ -556,7 +556,15 @@
     function updateTeacherOptions() {
       const dept = deptSelect.value;
       const teachers = subjectTeachers[dept] || [];
-      teacherSelect.innerHTML = teachers.map(t => `<option value="${t}">${t}</option>`).join('');
+      
+      // 新增：判斷如果為四處室，就在最上方加入「總表」選項
+      let optionsHtml = '';
+      if (['教務處', '學務處', '總務處', '輔導室'].includes(dept)) {
+        optionsHtml += `<option value="👑 全處室總表">👑 全處室總表</option>`;
+      }
+      
+      optionsHtml += teachers.map(t => `<option value="${t}">${t}</option>`).join('');
+      teacherSelect.innerHTML = optionsHtml;
     }
 
     // 自動計算並抓取該班級授課節數最多的老師（即導師）
@@ -648,37 +656,56 @@
         let name = rawValue;
         let suffix = ' 老師';
 
-        if (rawValue.includes('-')) {
-          name = rawValue.split('-')[1];
-        }
-        if (rawValue.includes('主任')) {
-          suffix = ' 主任';
-        }
+        // 👑 總表專屬標題處理
+        if (rawValue === '👑 全處室總表') {
+          scheduleTitle.innerHTML = `<span class="relative right-4 min-[375px]:right-5 md:right-6 inline-flex items-center">
+            ${starBtn}
+            <span onclick="toggleFocusMode()" class="cursor-pointer text-[21px] min-[375px]:text-2xl md:text-4xl">${deptSelect.value} 總表</span>
+          </span>`; 
+          targetTeacherName = '👑 全處室總表'; // 設定虛擬姓名以跳過教室查詢
+        } else {
+          if (rawValue.includes('-')) {
+            name = rawValue.split('-')[1];
+          }
+          if (rawValue.includes('主任')) {
+            suffix = ' 主任';
+          }
 
-        scheduleTitle.innerHTML = `<span class="relative right-4 min-[375px]:right-5 md:right-6 inline-flex items-center">
-          ${starBtn}
-          <span onclick="toggleFocusMode()" class="cursor-pointer text-[21px] min-[375px]:text-2xl md:text-4xl">${name}${suffix}</span>
-        </span>`; 
-        targetTeacherName = name;
+          scheduleTitle.innerHTML = `<span class="relative right-4 min-[375px]:right-5 md:right-6 inline-flex items-center">
+            ${starBtn}
+            <span onclick="toggleFocusMode()" class="cursor-pointer text-[21px] min-[375px]:text-2xl md:text-4xl">${name}${suffix}</span>
+          </span>`; 
+          targetTeacherName = name;
+        }
       }
 
       // 查詢並更新分機號碼與教室顯示 (雙層樓，網格對齊，沉底對齊)
-      let ext = teacherExtensions[targetTeacherName] || '無';
-      
-      if (roleSelect.value === '科任' && teacherClassrooms[targetTeacherName]) {
-        let room = teacherClassrooms[targetTeacherName];
-        // 採用 Grid 網格精準對齊冒號，並縮小字體
-        extNumber.innerHTML = `
-          <div class="grid grid-cols-[max-content_max-content] gap-x-0.5 md:gap-x-1 text-[9.5px] min-[375px]:text-[10px] md:text-[13px] text-left leading-tight">
-            <span class="text-right">教室:</span><span>${room}</span>
-            <span class="text-right">分機:</span><span>${ext}</span>
-          </div>`;
+      if (targetTeacherName === '👑 全處室總表') {
+        // 總表模式：隱藏右側分機，保持畫面乾淨
+        extNumber.innerHTML = '';
       } else {
-        // 導師班級單純顯示分機
-        extNumber.innerHTML = `分機:${ext}`;
+        let ext = teacherExtensions[targetTeacherName] || '無';
+        
+        if (roleSelect.value === '科任' && teacherClassrooms[targetTeacherName]) {
+          let room = teacherClassrooms[targetTeacherName];
+          extNumber.innerHTML = `
+            <div class="grid grid-cols-[auto_1fr] items-center">
+              <div class="text-right whitespace-nowrap">教室:</div>
+              <div class="whitespace-nowrap ml-1">${room}</div>
+              <div class="text-right whitespace-nowrap">分機:</div>
+              <div class="whitespace-nowrap ml-1">${ext}</div>
+            </div>
+          `;
+        } else {
+          extNumber.innerHTML = `
+            <div class="grid grid-cols-[auto_1fr] items-center">
+              <div class="text-right whitespace-nowrap">分機:</div>
+              <div class="whitespace-nowrap ml-1">${ext}</div>
+            </div>
+          `;
+        }
       }
 
-      // 最關鍵的一行：修復了被覆蓋掉的課表繪製指令！
       renderSchedule(); 
     }
 
@@ -741,6 +768,7 @@
           for (let i = 0; i < 5; i++) {
             let dayKey = days[i];
             let cellData = { subject: '', teacher: '' };
+            let masterScheduleItems = []; // 新增：用於裝載處室總表資料
 
             if (isResource) {
               // 【資源班專屬】：直接讀取 resourceSchedules 的資料 (包含 -1 早自習)
@@ -758,14 +786,49 @@
                     cellData = { subject: item.s, teacher: item.t || '' };
                   }
                 } else {
-                  // 【科任視角】：掃描全校資料庫，找出該老師在哪個班級上課
-                  for (const [className, schedule] of Object.entries(classSchedules)) {
-                    if (schedule[dayKey] && schedule[dayKey][slot.origIndex]) {
-                      const item = schedule[dayKey][slot.origIndex];
-                      // 如果這節課是這個老師上的
-                      if (item.t === currentTeacher) {
-                        cellData = { subject: item.s, teacher: className }; 
-                        break; 
+                  // 【科任視角】
+                  if (currentTeacher === '👑 全處室總表') {
+                    // 👑 總表模式：掃描目前處室的「所有人」
+                    let deptTeachers = subjectTeachers[deptSelect.value] || [];
+                    // 定義專屬的老師顏色 (調換前兩個顏色，讓宛娜為綠色、宜昆為藍色)
+                    const colorPalette = ['text-green-700', 'text-blue-700', 'text-purple-700', 'text-amber-600', 'text-cyan-700', 'text-stone-600'];
+                    
+                    deptTeachers.forEach((fullTeacherStr, tIndex) => {
+                      let tName = fullTeacherStr.includes('-') ? fullTeacherStr.split('-')[1] : fullTeacherStr;
+                      let tColor = colorPalette[tIndex % colorPalette.length]; // 依照處室名單順序給予專屬顏色
+                      
+                      for (const [className, schedule] of Object.entries(classSchedules)) {
+                        if (schedule[dayKey] && schedule[dayKey][slot.origIndex]) {
+                          const item = schedule[dayKey][slot.origIndex];
+                          if (item.t === tName) {
+                            // 轉換班級名稱 (例如: 一年1班 -> 1-1)
+                            let shortClass = className.replace(/(一|二|三|四|五|六)年(\d)班/, (match, p1, p2) => `${{'一':1,'二':2,'三':3,'四':4,'五':5,'六':6}[p1]}-${p2}`);
+                            // 轉換姓名為後兩字
+                            let shortName = tName.length >= 2 ? tName.slice(-2) : tName;
+                            // 將資料轉為物件，同時保存排序用的字串與最終顯示的帶顏色 HTML
+                            masterScheduleItems.push({
+                              sortKey: shortClass,
+                              displayHtml: `<div class="text-[8px] min-[375px]:text-[9px] min-[400px]:text-[10px] md:text-[15px] tracking-tighter leading-[1.2] whitespace-nowrap overflow-hidden ${tColor} font-bold w-full">${shortClass}&nbsp;${item.s}(${shortName})</div>`
+                            });
+                            break;
+                          }
+                        }
+                      }
+                    });
+
+                    // ⭐ 新增排序機制：將收集到的課程依照班級字首 (1-1, 1-2...) 由小到大排序
+                    masterScheduleItems.sort((a, b) => a.sortKey.localeCompare(b.sortKey));
+
+                  } else {
+                    // 原本的一般科任邏輯
+                    for (const [className, schedule] of Object.entries(classSchedules)) {
+                      if (schedule[dayKey] && schedule[dayKey][slot.origIndex]) {
+                        const item = schedule[dayKey][slot.origIndex];
+                        // 如果這節課是這個老師上的
+                        if (item.t === currentTeacher) {
+                          cellData = { subject: item.s, teacher: className }; 
+                          break; 
+                        }
                       }
                     }
                   }
@@ -774,7 +837,16 @@
             }
 
             // 開始繪製單一格子
-            if (cellData.subject || cellData.teacher) {
+            if (masterScheduleItems.length > 0) {
+              // 👑 處室總表專屬繪製：直接取用已經帶有顏色的 displayHtml
+              let fadeClass = isFocusMode ? 'opacity-10 transition-opacity duration-500' : 'transition-opacity duration-500';
+              let combinedHtml = masterScheduleItems.map(item => item.displayHtml).join('');
+              html += `<td class="${fadeClass} px-0">
+                         <div class="flex flex-col justify-center items-center h-full gap-[2px] w-full">
+                           ${combinedHtml}
+                         </div>
+                       </td>`;
+            } else if (cellData.subject || cellData.teacher) {
               // 判斷是否要啟動淡化特效 (聚焦模式開啟 且 該節課不是導師上的)，透明度 10%
               let fadeClass = '';
               if (!isTeacherView && isFocusMode && cellData.teacher !== hrTeacher) {
