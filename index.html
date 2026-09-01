@@ -308,6 +308,8 @@
 
     // 班級資料設定
     const classOptions = [
+      '👑 一年級總表', '👑 二年級總表', '👑 三年級總表',
+      '👑 四年級總表', '👑 五年級總表', '👑 六年級總表',
       '一年1班', '一年2班', '一年3班',
       '二年1班', '二年2班', '二年3班',
       '三年1班', '三年2班', '三年3班',
@@ -642,13 +644,22 @@
 
       if (roleSelect.value === '導師') {
         const currentClass = classSelect.value;
-        const hrTeacher = getHomeroomTeacher(currentClass);
-        // 加入 inline-flex 讓星星與標題在同一行完美置中對齊
-        scheduleTitle.innerHTML = `<span class="relative right-4 min-[375px]:right-5 md:right-6 inline-flex items-center">
-          ${starBtn}
-          <span onclick="toggleFocusMode()" class="cursor-pointer text-[21px] min-[375px]:text-2xl md:text-4xl">${currentClass} 導師:${hrTeacher}</span>
-        </span>`;
-        targetTeacherName = hrTeacher;
+        if (currentClass.includes('總表')) {
+          // 👑 年級總表專屬標題處理
+          scheduleTitle.innerHTML = `<span class="relative right-4 min-[375px]:right-5 md:right-6 inline-flex items-center">
+            ${starBtn}
+            <span onclick="toggleFocusMode()" class="cursor-pointer text-[21px] min-[375px]:text-2xl md:text-4xl">${currentClass.replace('👑 ', '')}</span>
+          </span>`;
+          targetTeacherName = '👑 年級總表'; // 設定虛擬姓名以跳過分機查詢
+        } else {
+          const hrTeacher = getHomeroomTeacher(currentClass);
+          // 加入 inline-flex 讓星星與標題在同一行完美置中對齊
+          scheduleTitle.innerHTML = `<span class="relative right-4 min-[375px]:right-5 md:right-6 inline-flex items-center">
+            ${starBtn}
+            <span onclick="toggleFocusMode()" class="cursor-pointer text-[21px] min-[375px]:text-2xl md:text-4xl">${currentClass} 導師:${hrTeacher}</span>
+          </span>`;
+          targetTeacherName = hrTeacher;
+        }
       } else {
         const rawValue = teacherSelect.value;
         if (!rawValue) return; 
@@ -680,7 +691,7 @@
       }
 
       // 查詢並更新分機號碼與教室顯示 (雙層樓，網格對齊，沉底對齊)
-      if (targetTeacherName === '👑 全處室總表') {
+      if (targetTeacherName === '👑 全處室總表' || targetTeacherName === '👑 年級總表') {
         // 總表模式：隱藏右側分機，保持畫面乾淨
         extNumber.innerHTML = '';
       } else {
@@ -780,10 +791,41 @@
               // 【常態班級與一般科任】：排除早自習 (-1)，只抓常態節次 (0~7)
               if (slot.origIndex >= 0) {
                 if (!isTeacherView) {
-                  // 【導師視角】：直接顯示該班級的科目與授課老師
-                  if (classSchedules[currentClass] && classSchedules[currentClass][dayKey] && classSchedules[currentClass][dayKey][slot.origIndex]) {
-                    const item = classSchedules[currentClass][dayKey][slot.origIndex];
-                    cellData = { subject: item.s, teacher: item.t || '' };
+                  // 【導師視角】
+                  if (currentClass.includes('總表')) {
+                    // 👑 導師年級總表模式
+                    const gradeMatch = currentClass.match(/(一|二|三|四|五|六)年級/);
+                    const gradeStr = gradeMatch ? gradeMatch[1] + '年' : '';
+                    const colorPalette = ['text-green-700', 'text-blue-700', 'text-purple-700', 'text-amber-600', 'text-cyan-700', 'text-stone-600'];
+                    let classIndex = 0;
+                    
+                    for (const [className, schedule] of Object.entries(classSchedules)) {
+                      if (className.startsWith(gradeStr)) {
+                        const hrTeacher = getHomeroomTeacher(className);
+                        const tColor = colorPalette[classIndex % colorPalette.length];
+                        
+                        if (schedule[dayKey] && schedule[dayKey][slot.origIndex]) {
+                          const item = schedule[dayKey][slot.origIndex];
+                          // ⭐ 核心邏輯：該節課必須是導師本人上的才顯示 (過濾掉科任課)
+                          if (item.t === hrTeacher) {
+                            let shortClass = className.replace(/(一|二|三|四|五|六)年(\d)班/, (match, p1, p2) => `${{'一':1,'二':2,'三':3,'四':4,'五':5,'六':6}[p1]}-${p2}`);
+                            let shortName = hrTeacher.length >= 2 ? hrTeacher.slice(-2) : hrTeacher;
+                            masterScheduleItems.push({
+                              sortKey: shortClass,
+                              displayHtml: `<div class="text-[8px] min-[375px]:text-[9px] min-[400px]:text-[10px] md:text-[15px] tracking-tighter leading-[1.2] whitespace-nowrap overflow-hidden ${tColor} font-bold w-full">${shortClass}&nbsp;${item.s}(${shortName})</div>`
+                            });
+                          }
+                        }
+                        classIndex++;
+                      }
+                    }
+                    masterScheduleItems.sort((a, b) => a.sortKey.localeCompare(b.sortKey));
+                  } else {
+                    // 一般單一導師班級
+                    if (classSchedules[currentClass] && classSchedules[currentClass][dayKey] && classSchedules[currentClass][dayKey][slot.origIndex]) {
+                      const item = classSchedules[currentClass][dayKey][slot.origIndex];
+                      cellData = { subject: item.s, teacher: item.t || '' };
+                    }
                   }
                 } else {
                   // 【科任視角】
@@ -894,8 +936,8 @@
         deptSelectWrapper.classList.add('hidden');
         teacherSelectWrapper.classList.add('hidden');
         
-        // 新增：切換回導師時，自動將選單歸零回最頂層的「一年1班」
-        classSelect.selectedIndex = 0;
+        // 新增：切換回導師時，自動將選單歸零回「一年1班」
+        classSelect.value = '一年1班';
       } else {
         classSelectWrapper.classList.add('hidden');
         deptSelectWrapper.classList.remove('hidden');
