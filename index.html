@@ -227,7 +227,10 @@
       </div>
       <div class="mt-4 flex justify-between items-center border-t pt-4">
         <span id="groupCountText" class="font-bold text-pink-600 tracking-widest text-lg">已選: 0/4</span>
-        <button onclick="confirmGroupSelection()" class="bg-pink-500 hover:bg-pink-600 text-white font-bold py-2 px-6 rounded-lg transition-colors">確定比較</button>
+        <div class="flex gap-2">
+          <button id="clearGroupBtn" onclick="clearGroupSelection()" class="hidden bg-gray-200 hover:bg-gray-300 text-gray-700 font-bold py-2 px-3 md:px-4 rounded-lg transition-colors text-sm md:text-base">取消全選</button>
+          <button onclick="confirmGroupSelection()" class="bg-pink-500 hover:bg-pink-600 text-white font-bold py-2 px-4 md:px-6 rounded-lg transition-colors text-sm md:text-base">確定比較</button>
+        </div>
       </div>
     </div>
   </div>
@@ -700,14 +703,41 @@
       updateTitle(); 
     };
 
+    // 新增：回首頁 (讀取釘選紀錄並跳轉)
+    window.goHome = function(e) {
+      if (e) e.stopPropagation();
+      const savedFav = JSON.parse(localStorage.getItem('erlingFav') || 'null');
+      if (savedFav) {
+        // 利用觸發 change 事件，讓系統自動切換所有選單與畫面
+        roleSelect.value = savedFav.role;
+        roleSelect.dispatchEvent(new Event('change')); 
+        
+        if (savedFav.role === '導師') {
+          classSelect.value = savedFav.class;
+          classSelect.dispatchEvent(new Event('change'));
+        } else if (savedFav.role === '科任') {
+          deptSelect.value = savedFav.dept;
+          deptSelect.dispatchEvent(new Event('change'));
+          teacherSelect.value = savedFav.teacher;
+          teacherSelect.dispatchEvent(new Event('change'));
+        }
+      }
+    };
+
     // 更新課表標題與分機號碼
     function updateTitle() {
       const starSvgSolid = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="#f59e0b" class="w-6 h-6 min-[375px]:w-7 min-[375px]:h-7 md:w-9 md:h-9 drop-shadow-sm"><path fill-rule="evenodd" d="M10.788 3.21c.448-1.077 1.976-1.077 2.424 0l2.082 5.007 5.404.433c1.164.093 1.636 1.545.749 2.305l-4.117 3.527 1.257 5.273c.271 1.136-.964 2.033-1.96 1.425L12 18.354 7.373 21.18c-.996.608-2.231-.29-1.96-1.425l1.257-5.273-4.117-3.527c-.887-.76-.415-2.212.749-2.305l5.404-.433 2.082-5.006z" clip-rule="evenodd" /></svg>`;
       const starSvgOutline = `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="#cbd5e1" class="w-6 h-6 min-[375px]:w-7 min-[375px]:h-7 md:w-9 md:h-9 hover:stroke-yellow-400 transition-colors"><path stroke-linecap="round" stroke-linejoin="round" d="M11.48 3.499a.562.562 0 011.04 0l2.125 5.111a.563.563 0 00.475.345l5.518.442c.499.04.701.663.321.988l-4.204 3.602a.563.563 0 00-.182.557l1.285 5.385c.148.621-.531 1.12-1.097.82l-4.773-2.533a.563.563 0 00-.536 0l-4.773 2.533c-.566.3-.1245-.199.022-.82l1.285-5.385a.563.563 0 00-.182-.557l-4.204-3.602c-.38-.325-.178-.948.321-.988l5.518-.442a.563.563 0 00.475-.345L11.48 3.5z" /></svg>`;
 
+      // 檢查是否已釘選，如果有，就產生「回首頁」房子按鈕
+      const savedFavForHome = JSON.parse(localStorage.getItem('erlingFav') || 'null');
+      const homeSvg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="#14b8a6" class="w-6 h-6 min-[375px]:w-7 min-[375px]:h-7 md:w-9 md:h-9 drop-shadow-sm"><path d="M11.47 3.84a.75.75 0 011.06 0l8.99 9a.75.75 0 11-1.06 1.06l-4.21-4.21V21a.75.75 0 01-.75.75h-3.5a.75.75 0 01-.75-.75v-4.5a.75.75 0 00-.75-.75h-3a.75.75 0 00-.75.75V21a.75.75 0 01-.75.75H4a.75.75 0 01-.75-.75v-11.3l-4.21 4.21a.75.75 0 11-1.06-1.06l8.99-9z" /></svg>`;
+      const homeBtn = savedFavForHome ? `<span onclick="goHome(event)" class="cursor-pointer hover:scale-110 active:scale-95 transition-transform mr-1 md:mr-2" title="回到釘選首頁">${homeSvg}</span>` : '';
+
       if (roleSelect.value === '群組') {
         scheduleTitle.innerHTML = `<span class="relative right-4 min-[375px]:right-5 md:right-6 inline-flex items-center">
-          <span class="text-[21px] min-[375px]:text-2xl md:text-4xl ml-2 md:ml-4">🤝 共同空堂比對</span>
+          ${homeBtn}
+          <span class="text-[21px] min-[375px]:text-2xl md:text-4xl ml-2 md:ml-4">🤝共同空堂比對</span>
         </span>`;
         extNumber.innerHTML = `<div class="text-[12px] md:text-sm text-pink-600 font-bold mt-1 tracking-widest">已選 ${selectedGroupTeachers.length} 人</div>`;
         renderSchedule();
@@ -727,14 +757,14 @@
         const currentClass = classSelect.value;
         if (currentClass.includes('總表')) {
           scheduleTitle.innerHTML = `<span class="relative right-4 min-[375px]:right-5 md:right-6 inline-flex items-center">
-            ${starBtn}
+            ${homeBtn}${starBtn}
             <span onclick="toggleFocusMode()" class="cursor-pointer text-[21px] min-[375px]:text-2xl md:text-4xl">${currentClass.replace('👑 ', '')}</span>
           </span>`;
           targetTeacherName = '👑 年級總表'; 
         } else {
           const hrTeacher = getHomeroomTeacher(currentClass);
           scheduleTitle.innerHTML = `<span class="relative right-4 min-[375px]:right-5 md:right-6 inline-flex items-center">
-            ${starBtn}
+            ${homeBtn}${starBtn}
             <span onclick="toggleFocusMode()" class="cursor-pointer text-[21px] min-[375px]:text-2xl md:text-4xl">${currentClass} 導師:${hrTeacher}</span>
           </span>`;
           targetTeacherName = hrTeacher;
@@ -748,13 +778,13 @@
 
         if (rawValue === '👑 全處室總表') {
           scheduleTitle.innerHTML = `<span class="relative right-4 min-[375px]:right-5 md:right-6 inline-flex items-center">
-            ${starBtn}
+            ${homeBtn}${starBtn}
             <span onclick="toggleFocusMode()" class="cursor-pointer text-[21px] min-[375px]:text-2xl md:text-4xl">${deptSelect.value} 總表</span>
           </span>`; 
           targetTeacherName = '👑 全處室總表'; 
         } else if (rawValue === '🏀 體育課總表') {
           scheduleTitle.innerHTML = `<span class="relative right-4 min-[375px]:right-5 md:right-6 inline-flex items-center">
-            ${starBtn}
+            ${homeBtn}${starBtn}
             <span onclick="toggleFocusMode()" class="cursor-pointer text-[21px] min-[375px]:text-2xl md:text-4xl">🏀 體育課總表</span>
           </span>`; 
           targetTeacherName = '🏀 體育課總表';
@@ -763,7 +793,7 @@
           if (rawValue.includes('主任')) suffix = ' 主任';
 
           scheduleTitle.innerHTML = `<span class="relative right-4 min-[375px]:right-5 md:right-6 inline-flex items-center">
-            ${starBtn}
+            ${homeBtn}${starBtn}
             <span onclick="toggleFocusMode()" class="cursor-pointer text-[21px] min-[375px]:text-2xl md:text-4xl">${name}${suffix}</span>
           </span>`; 
           targetTeacherName = name;
@@ -1338,6 +1368,16 @@
         `;
       }).join('');
       groupCountText.textContent = `已選: ${tempSelected.length}/4`;
+
+      // 控制「取消全選」按鈕的顯示與隱藏
+      const clearBtn = document.getElementById('clearGroupBtn');
+      if (clearBtn) {
+        if (tempSelected.length > 0) {
+          clearBtn.classList.remove('hidden');
+        } else {
+          clearBtn.classList.add('hidden');
+        }
+      }
     }
 
     window.toggleGroupTeacher = function(checkbox) {
@@ -1355,6 +1395,12 @@
       groupSelectBtn.textContent = `➕ 挑選老師 (${selectedGroupTeachers.length}/4)`;
       hideGroupModal();
       updateTitle(); 
+    }
+
+    // 新增：取消全選功能
+    window.clearGroupSelection = function() {
+      tempSelected = [];
+      renderGroupCheckboxes();
     }
   </script>
 </body>
