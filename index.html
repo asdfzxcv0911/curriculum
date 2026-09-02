@@ -216,6 +216,7 @@
           <option value="輔導室">輔導室</option>
           <option value="資源班">資源班</option>
           <option value="純科任">純科任</option>
+          <option value="🏀 體育課總表">🏀 體育課總表</option>
         </select>
       </div>
 
@@ -545,6 +546,28 @@
       '邱文彥': '自然教室D', '周怡君': '音樂教室'
     };
 
+    // ⭐ 剛剛遺漏的核心功能：自動計算班級導師 (掃描該班上最多次課的老師)
+    function getHomeroomTeacher(className) {
+      if (!classSchedules[className]) return '';
+      const teacherCounts = {};
+      let maxCount = 0;
+      let hrTeacher = '';
+      
+      const schedule = classSchedules[className];
+      for (const day in schedule) {
+        schedule[day].forEach(item => {
+          if (item && item.t) {
+            teacherCounts[item.t] = (teacherCounts[item.t] || 0) + 1;
+            if (teacherCounts[item.t] > maxCount) {
+              maxCount = teacherCounts[item.t];
+              hrTeacher = item.t;
+            }
+          }
+        });
+      }
+      return hrTeacher;
+    }
+
     // 記錄是否開啟導師聚焦模式
     let isFocusMode = false;
 
@@ -563,35 +586,12 @@
       let optionsHtml = '';
       if (['教務處', '學務處', '總務處', '輔導室'].includes(dept)) {
         optionsHtml += `<option value="👑 全處室總表">👑 全處室總表</option>`;
+      } else if (dept === '🏀 體育課總表') {
+        optionsHtml += `<option value="🏀 體育課總表">🏀 體育課總表</option>`;
       }
       
       optionsHtml += teachers.map(t => `<option value="${t}">${t}</option>`).join('');
       teacherSelect.innerHTML = optionsHtml;
-    }
-
-    // 自動計算並抓取該班級授課節數最多的老師（即導師）
-    function getHomeroomTeacher(className) {
-      const schedule = classSchedules[className];
-      if (!schedule) return '';
-      
-      const teacherCounts = {};
-      let maxCount = 0;
-      let homeroomTeacher = '';
-
-      for (const day in schedule) {
-        schedule[day].forEach(slot => {
-          // 確保老師欄位有名字，且不是空白
-          if (slot.t && slot.t.trim() !== '') {
-            teacherCounts[slot.t] = (teacherCounts[slot.t] || 0) + 1;
-            // 找出出現最多次的名字
-            if (teacherCounts[slot.t] > maxCount) {
-              maxCount = teacherCounts[slot.t];
-              homeroomTeacher = slot.t;
-            }
-          }
-        });
-      }
-      return homeroomTeacher;
     }
 
     // ⭐ 新增：切換與儲存釘選最愛課表的邏輯
@@ -674,6 +674,12 @@
             <span onclick="toggleFocusMode()" class="cursor-pointer text-[21px] min-[375px]:text-2xl md:text-4xl">${deptSelect.value} 總表</span>
           </span>`; 
           targetTeacherName = '👑 全處室總表'; // 設定虛擬姓名以跳過教室查詢
+        } else if (rawValue === '🏀 體育課總表') {
+          scheduleTitle.innerHTML = `<span class="relative right-4 min-[375px]:right-5 md:right-6 inline-flex items-center">
+            ${starBtn}
+            <span onclick="toggleFocusMode()" class="cursor-pointer text-[21px] min-[375px]:text-2xl md:text-4xl">🏀 體育課總表</span>
+          </span>`; 
+          targetTeacherName = '🏀 體育課總表'; // 設定虛擬姓名以跳過分機查詢
         } else {
           if (rawValue.includes('-')) {
             name = rawValue.split('-')[1];
@@ -691,7 +697,7 @@
       }
 
       // 查詢並更新分機號碼與教室顯示 (雙層樓，網格對齊，沉底對齊)
-      if (targetTeacherName === '👑 全處室總表' || targetTeacherName === '👑 年級總表') {
+      if (targetTeacherName === '👑 全處室總表' || targetTeacherName === '👑 年級總表' || targetTeacherName === '🏀 體育課總表') {
         // 總表模式：隱藏右側分機，保持畫面乾淨
         extNumber.innerHTML = '';
       } else {
@@ -859,6 +865,35 @@
                     });
 
                     // ⭐ 新增排序機制：將收集到的課程依照班級字首 (1-1, 1-2...) 由小到大排序
+                    masterScheduleItems.sort((a, b) => a.sortKey.localeCompare(b.sortKey));
+
+                  } else if (currentTeacher === '🏀 體育課總表') {
+                    // 🏀 體育專屬模式：跨處室抓取「科目 = 體育」的課，並分配專屬無紅色系
+                    const peColorMap = {
+                      '宜昆': 'text-blue-700',
+                      '金池': 'text-purple-700',
+                      '柏勳': 'text-teal-700'
+                    };
+                    const defaultColor = 'text-amber-600'; // 備用色
+
+                    for (const [className, schedule] of Object.entries(classSchedules)) {
+                      if (schedule[dayKey] && schedule[dayKey][slot.origIndex]) {
+                        const item = schedule[dayKey][slot.origIndex];
+                        // ⭐ 核心過濾條件：只抓體育課！
+                        if (item.s === '體育') {
+                          let tName = item.t;
+                          let shortClass = className.replace(/(一|二|三|四|五|六)年(\d)班/, (match, p1, p2) => `${{'一':1,'二':2,'三':3,'四':4,'五':5,'六':6}[p1]}-${p2}`);
+                          let shortName = tName.length >= 2 ? tName.slice(-2) : tName;
+                          let tColor = peColorMap[shortName] || defaultColor;
+
+                          masterScheduleItems.push({
+                            sortKey: shortClass,
+                            displayHtml: `<div class="text-[8px] min-[375px]:text-[9px] min-[400px]:text-[10px] md:text-[15px] tracking-tighter leading-[1.2] whitespace-nowrap overflow-hidden ${tColor} font-bold w-full">${shortClass}&nbsp;${item.s}(${shortName})</div>`
+                          });
+                        }
+                      }
+                    }
+                    
                     masterScheduleItems.sort((a, b) => a.sortKey.localeCompare(b.sortKey));
 
                   } else {
