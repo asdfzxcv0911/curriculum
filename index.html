@@ -1234,23 +1234,27 @@
       }
       
       // 依照權重排序後回傳
-      return teacherInfo.sort((a, b) => a.sortWeight - b.sortWeight);
-    }
+    return teacherInfo.sort((a, b) => a.sortWeight - b.sortWeight);
+  }
 
-    window.showGroupModal = function() {
-      tempSelected = [...selectedGroupTeachers];
-      renderGroupCheckboxes();
-      groupModal.classList.remove('hidden');
-      setTimeout(() => { groupModal.classList.remove('opacity-0'); groupModal.classList.add('opacity-100'); }, 10);
-    };
+  window.showGroupModal = function() {
+    tempSelected = [...selectedGroupTeachers];
+    renderGroupCheckboxes();
+    groupModal.classList.remove('hidden');
+    // 鎖定背景，防止滾動穿透
+    document.body.classList.add('overflow-hidden');
+    setTimeout(() => { groupModal.classList.remove('opacity-0'); groupModal.classList.add('opacity-100'); }, 10);
+  };
 
-    window.hideGroupModal = function() {
-      groupModal.classList.remove('opacity-100');
-      groupModal.classList.add('opacity-0');
-      setTimeout(() => { groupModal.classList.add('hidden'); }, 300);
-    };
+  window.hideGroupModal = function() {
+    groupModal.classList.remove('opacity-100');
+    groupModal.classList.add('opacity-0');
+    // 解除背景鎖定，恢復正常網頁滑動
+    document.body.classList.remove('overflow-hidden');
+    setTimeout(() => { groupModal.classList.add('hidden'); }, 300);
+  };
 
-    function renderGroupCheckboxes() {
+  function renderGroupCheckboxes() {
       const options = getGroupTeacherOptions();
       groupTeacherList.innerHTML = options.map(t => {
         let isChecked = tempSelected.includes(t.originalName);
