@@ -178,17 +178,17 @@
   </div>
 
   <!-- === 新增：校園地圖彈出視窗 === -->
-  <div id="mapModal" class="fixed inset-0 bg-black/80 z-[100] hidden flex-col items-center justify-center opacity-0 transition-opacity duration-300" onclick="hideMap()">
-    <!-- 阻止點擊圖片本身時觸發關閉 (event.stopPropagation) -->
-    <div class="relative w-[95%] max-w-4xl max-h-[90vh] flex flex-col items-center" onclick="event.stopPropagation()">
-      <!-- 關閉按鈕 (右上角) -->
-      <button onclick="hideMap()" class="absolute -top-10 right-0 text-white hover:text-gray-300 focus:outline-none">
+  <div id="mapModal" class="fixed inset-0 bg-black/90 z-[100] hidden flex-col items-center justify-center opacity-0 transition-opacity duration-300">
+    <!-- 地圖圖片容器 (解開寬度封印，最大化 95% 寬高) -->
+    <div class="relative w-[95vw] h-[95vh] flex flex-col items-center justify-center">
+      <!-- 關閉按鈕 (固定於右上角，加上半透明背景防干擾，確保放大時也能清楚點擊) -->
+      <button onclick="hideMap()" class="absolute top-0 right-0 md:top-2 md:right-2 text-white hover:text-gray-300 focus:outline-none bg-black/40 rounded-full p-2 z-[110] backdrop-blur-sm">
         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-8 h-8 md:w-10 md:h-10">
           <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
         </svg>
       </button>
-      <!-- 地圖圖片 (預設尋找 map.png，若無則顯示佔位圖) -->
-      <img src="map.png" alt="校園平面圖" class="w-full h-auto max-h-[85vh] object-contain rounded-xl shadow-2xl bg-[#fffdfa]" onerror="this.onerror=null; this.src='https://placehold.co/800x600/eeeeee/999999?text=尚未上傳+map.png';">
+      <!-- 圖片改為填滿容器，並維持比例不變形 -->
+      <img src="map.png" alt="校園平面圖" class="w-full h-full object-contain rounded-xl shadow-2xl bg-[#fffdfa]" onerror="this.onerror=null; this.src='https://placehold.co/800x600/eeeeee/999999?text=尚未上傳+map.png';">
     </div>
   </div>
 
@@ -1082,6 +1082,16 @@
     window.hideMap = function() {
       mapModal.classList.remove('opacity-100');
       mapModal.classList.add('opacity-0');
+      
+      // 🌟 縮放重置魔法：瞬間鎖定縮放再解開，迫使手機瀏覽器回到完美的 100% 比例
+      const viewportMeta = document.querySelector('meta[name="viewport"]');
+      if (viewportMeta) {
+        viewportMeta.content = 'width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no';
+        setTimeout(() => {
+          viewportMeta.content = 'width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes';
+        }, 100);
+      }
+
       // 等待淡出動畫 (300ms) 結束後再將元素隱藏
       setTimeout(() => {
         mapModal.classList.add('hidden');
