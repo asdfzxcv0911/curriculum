@@ -1250,10 +1250,11 @@
     };
 
     function renderGroupCheckboxes() {
-      // 專為手機版拉開間距防誤觸 (gap-4) 並加上外邊距 (p-2)，電腦版則強制維持第一版最美比例 (md:gap-3 md:p-1)
-      groupTeacherList.className = 'flex-1 overflow-y-auto grid grid-cols-2 sm:grid-cols-3 gap-4 md:gap-3 p-2 md:p-1';
+      // 專為手機版設定：改為「單行排列 (grid-cols-1)」，徹底解決重疊問題，允許往下滾動。
+      // 電腦版：強制維持第一版的「三欄排版 (md:grid-cols-3)」
+      groupTeacherList.className = 'flex-1 overflow-y-auto grid grid-cols-1 md:grid-cols-3 gap-3 p-2 md:p-1';
 
-      // 改用新的格式化名單產生器
+      // 產生名單
       const formattedTeachers = getAllTeachersWithFormat();
       groupTeacherList.innerHTML = formattedTeachers.map(item => {
         let t = item.origName;
@@ -1262,11 +1263,12 @@
         let disabled = !isChecked && tempSelected.length >= 4 ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer';
         let bgClass = isChecked ? 'bg-pink-100 border-pink-400' : 'bg-gray-50 border-gray-200';
         
-        // 手機版：上下加高(py-4)增加點擊熱區。電腦版：維持第一版的 (md:p-3) 絕對不動！
+        // 手機版：一行一個，高度加高 (py-4)，左右留白 (px-4)，字體放大到 15px，極致好按。
+        // 電腦版：維持 md:p-3 與 md:text-base，完美不變。
         return `
-          <label class="flex items-center gap-2 py-4 px-2 md:p-3 border-2 rounded-lg transition-colors ${bgClass} ${disabled} overflow-hidden w-full shadow-sm">
-            <input type="checkbox" value="${t}" ${isChecked ? 'checked' : ''} onchange="toggleGroupTeacher(this)" class="shrink-0 w-4 h-4 md:w-5 md:h-5 text-pink-600 focus:ring-pink-500 rounded" ${!isChecked && tempSelected.length >= 4 ? 'disabled' : ''}>
-            <span class="font-bold text-gray-700 text-[11px] min-[375px]:text-xs md:text-base tracking-tighter whitespace-nowrap w-full">${displayName}</span>
+          <label class="flex items-center gap-3 py-4 px-4 md:p-3 border-2 rounded-lg transition-colors ${bgClass} ${disabled} overflow-hidden w-full shadow-sm">
+            <input type="checkbox" value="${t}" ${isChecked ? 'checked' : ''} onchange="toggleGroupTeacher(this)" class="shrink-0 w-5 h-5 text-pink-600 focus:ring-pink-500 rounded" ${!isChecked && tempSelected.length >= 4 ? 'disabled' : ''}>
+            <span class="font-bold text-gray-700 text-[15px] md:text-base tracking-tighter whitespace-nowrap w-full">${displayName}</span>
           </label>
         `;
       }).join('');
