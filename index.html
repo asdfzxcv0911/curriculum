@@ -177,6 +177,21 @@
     </div>
   </div>
 
+  <!-- === 新增：校園地圖彈出視窗 === -->
+  <div id="mapModal" class="fixed inset-0 bg-black/80 z-[100] hidden flex-col items-center justify-center opacity-0 transition-opacity duration-300" onclick="hideMap()">
+    <!-- 阻止點擊圖片本身時觸發關閉 (event.stopPropagation) -->
+    <div class="relative w-[95%] max-w-4xl max-h-[90vh] flex flex-col items-center" onclick="event.stopPropagation()">
+      <!-- 關閉按鈕 (右上角) -->
+      <button onclick="hideMap()" class="absolute -top-10 right-0 text-white hover:text-gray-300 focus:outline-none">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-8 h-8 md:w-10 md:h-10">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+        </svg>
+      </button>
+      <!-- 地圖圖片 (預設尋找 map.png，若無則顯示佔位圖) -->
+      <img src="map.png" alt="校園平面圖" class="w-full h-auto max-h-[85vh] object-contain rounded-xl shadow-2xl bg-[#fffdfa]" onerror="this.onerror=null; this.src='https://placehold.co/800x600/eeeeee/999999?text=尚未上傳+map.png';">
+    </div>
+  </div>
+
   <div class="app-container">
     
     <!-- 最上方大標題 (使用 clamp 確保手機版一定單行，不跨行) -->
@@ -227,6 +242,13 @@
         <select id="teacherSelect" class="w-auto pl-2 pr-5 py-1 bg-purple-50 border-2 border-purple-200 rounded-lg text-purple-900 focus:outline-none text-xs md:text-lg font-bold">
           <!-- JS 動態生成 -->
         </select>
+      </div>
+
+      <!-- === 新增：地圖按鈕 (彩色 🗺️ 圖示) === -->
+      <div class="flex flex-col gap-1 pb-[2px] md:pb-[3px]">
+        <button onclick="showMap()" class="w-[28px] h-[28px] md:w-[38px] md:h-[38px] bg-white border-2 border-gray-200 rounded-lg flex items-center justify-center shadow-sm hover:bg-gray-50 hover:border-gray-300 transition-colors focus:outline-none text-sm md:text-xl" title="查看校園地圖">
+          🗺️
+        </button>
       </div>
 
     </div>
@@ -1042,6 +1064,29 @@
 
     // 正式啟動系統
     initDropdowns();
+
+    // ==========================================
+    // 地圖彈出視窗功能
+    // ==========================================
+    const mapModal = document.getElementById('mapModal');
+
+    window.showMap = function() {
+      mapModal.classList.remove('hidden');
+      // 延遲一點點以確保 CSS 淡入動畫能正常觸發
+      setTimeout(() => {
+        mapModal.classList.remove('opacity-0');
+        mapModal.classList.add('opacity-100');
+      }, 10);
+    };
+
+    window.hideMap = function() {
+      mapModal.classList.remove('opacity-100');
+      mapModal.classList.add('opacity-0');
+      // 等待淡出動畫 (300ms) 結束後再將元素隱藏
+      setTimeout(() => {
+        mapModal.classList.add('hidden');
+      }, 300);
+    };
 
     // ==========================================
     // 快速跳轉功能 (點擊課表內的班級或老師即可跳轉)
