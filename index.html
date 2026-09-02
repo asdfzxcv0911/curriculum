@@ -811,6 +811,53 @@
         currentTeacher = currentTeacher.split('-')[1];
       }
 
+      // --- 新增：計算總節數邏輯 ---
+      let totalSlots = 0;
+      let showTotal = false;
+      let targetCountTeacher = '';
+
+      if (!isGroupView) {
+        if (currentRole === '導師' && !currentClass.includes('總表')) {
+          showTotal = true;
+          targetCountTeacher = hrTeacher;
+          // 導師：只計算該班級課表中，名字符合導師的節數
+          if (classSchedules[currentClass]) {
+            for (const day in classSchedules[currentClass]) {
+              classSchedules[currentClass][day].forEach(item => {
+                if (item.t === targetCountTeacher) totalSlots++;
+              });
+            }
+          }
+        } else if (currentRole === '科任' && currentTeacher !== '👑 全處室總表' && currentTeacher !== '🏀 體育課總表') {
+          showTotal = true;
+          targetCountTeacher = currentTeacher;
+          const isResourceCheck = deptSelect.value === '資源班';
+          
+          if (isResourceCheck) {
+            // 資源班：計算自己專屬課表內所有有排課的格子
+            const rSchedule = resourceSchedules[targetCountTeacher];
+            if (rSchedule) {
+              for (const day in rSchedule) {
+                for (const slotIdx in rSchedule[day]) {
+                  const item = rSchedule[day][slotIdx];
+                  if (item.s || item.t) totalSlots++;
+                }
+              }
+            }
+          } else {
+            // 純科任/行政：計算全校班級中所有出現該名字的節數
+            for (const className in classSchedules) {
+              for (const day in classSchedules[className]) {
+                classSchedules[className][day].forEach(item => {
+                  if (item.t === targetCountTeacher) totalSlots++;
+                });
+              }
+            }
+          }
+        }
+      }
+      // --------------------------
+
       const isResource = isTeacherView && deptSelect.value === '資源班';
       const tableEl = document.querySelector('table');
       if (isResource) {
@@ -847,6 +894,26 @@
         } else {
           for (let i = 0; i < 5; i++) {
             let dayKey = days[i];
+            
+            // --- 新增：判斷是否為「總節數」顯示格 ---
+            let isTotalCell = false;
+            if (showTotal && dayKey === 'WED') {
+              if (targetCountTeacher === '李介麟' && slot.origIndex === 8) isTotalCell = true;
+              else if (targetCountTeacher !== '李介麟' && slot.origIndex === 7) isTotalCell = true;
+            }
+
+            if (isTotalCell) {
+              let emptyFadeClass = isFocusMode ? 'opacity-10 transition-opacity duration-500' : 'transition-opacity duration-500';
+              // 透過字體微縮放、強制不換行，完美塞進格子且柔和不搶眼
+              html += `<td class="${emptyFadeClass}">
+                         <div class="flex items-center justify-center h-full w-full">
+                           <span class="text-[13px] min-[375px]:text-[15px] md:text-[24px] font-bold text-slate-400 whitespace-nowrap tracking-tighter">共${totalSlots}節</span>
+                         </div>
+                       </td>`;
+              continue; // 填入總節數後，直接跳過後續原本的空堂渲染邏輯
+            }
+            // ----------------------------------------
+
             let cellData = { subject: '', teacher: '' };
             let masterScheduleItems = []; 
             let groupBusyTeachers = []; // 給群組模式使用
