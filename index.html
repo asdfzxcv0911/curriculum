@@ -1177,17 +1177,63 @@
     const groupCountText = document.getElementById('groupCountText');
     let tempSelected = []; 
 
-    function getAllTeachersList() {
-      let teachers = new Set();
+    // 新增：帶有前綴與自訂排序的教師名單產生器
+    function getAllTeachersWithFormat() {
+      let list = [];
+      const gradeMap = {'一':'1', '二':'2', '三':'3', '四':'4', '五':'5', '六':'6'};
+
+      // 1. 導師 (自動轉換成 101, 102 格式)
       Object.keys(classSchedules).forEach(cls => {
         let t = getHomeroomTeacher(cls);
-        if (t) teachers.add(t);
+        if (t) {
+          let match = cls.match(/(一|二|三|四|五|六)年(\d)班/);
+          if (match) {
+            let shortClass = gradeMap[match[1]] + '0' + match[2]; // 例如: '101'
+            let weight = parseInt(shortClass); // 權重: 101 ~ 603
+            list.push({ origName: t, formattedName: `${shortClass}${t}`, weight: weight });
+          }
+        }
       });
-      Object.values(subjectTeachers).flat().forEach(tStr => {
-        let name = tStr.includes('-') ? tStr.split('-')[1] : tStr;
-        teachers.add(name);
+
+      // 2. 科任/行政 (精準擷取職稱前兩個字)
+      const deptWeight = { '教務處': 1000, '學務處': 2000, '總務處': 3000, '輔導室': 4000, '資源班': 5000, '純科任': 6000 };
+
+      Object.entries(subjectTeachers).forEach(([dept, tList]) => {
+        tList.forEach((fullStr, index) => {
+          let name = fullStr;
+          let prefix = "";
+
+          if (fullStr.includes('-')) {
+            // 有帶職稱的，例如「教學組長-施雅芸」
+            let parts = fullStr.split('-');
+            name = parts[1];
+            // 精準取職稱的前兩個字
+            prefix = parts[0].substring(0, 2);
+          } else {
+            // 沒有帶職稱的 (如資源班、純科任)
+            if (dept === '純科任') {
+              prefix = '科任';
+            } else if (dept === '資源班') {
+              prefix = '資源';
+            } else {
+              prefix = dept.substring(0, 2);
+            }
+          }
+
+          let formattedName = `${prefix}-${name}`;
+          let weight = deptWeight[dept] + index;
+          list.push({ origName: name, formattedName: formattedName, weight: weight });
+        });
       });
-      return Array.from(teachers).sort((a, b) => a.localeCompare(b, 'zh-TW'));
+
+      // 移除重複的人員並依照權重排序
+      let uniqueMap = new Map();
+      list.forEach(item => {
+        if (!uniqueMap.has(item.origName)) {
+          uniqueMap.set(item.origName, item);
+        }
+      });
+      return Array.from(uniqueMap.values()).sort((a, b) => a.weight - b.weight);
     }
 
     window.showGroupModal = function() {
@@ -1204,15 +1250,20 @@
     };
 
     function renderGroupCheckboxes() {
-      const allTeachers = getAllTeachersList();
-      groupTeacherList.innerHTML = allTeachers.map(t => {
+      // 改用新的格式化名單產生器
+      const formattedTeachers = getAllTeachersWithFormat();
+      groupTeacherList.innerHTML = formattedTeachers.map(item => {
+        let t = item.origName;
+        let displayName = item.formattedName;
         let isChecked = tempSelected.includes(t);
         let disabled = !isChecked && tempSelected.length >= 4 ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer';
         let bgClass = isChecked ? 'bg-pink-100 border-pink-400' : 'bg-gray-50 border-gray-200';
+        
+        // 恢復原本較好看的格子大小 (p-2 md:p-3)，並保留自動縮小與防破版設計
         return `
-          <label class="flex items-center gap-2 p-2 border-2 rounded-lg transition-colors ${bgClass} ${disabled}">
-            <input type="checkbox" value="${t}" ${isChecked ? 'checked' : ''} onchange="toggleGroupTeacher(this)" class="w-4 h-4 text-pink-600 focus:ring-pink-500 rounded" ${!isChecked && tempSelected.length >= 4 ? 'disabled' : ''}>
-            <span class="font-bold text-gray-700 text-sm md:text-lg">${t}</span>
+          <label class="flex items-center gap-1.5 md:gap-2 p-2 md:p-3 border-2 rounded-lg transition-colors ${bgClass} ${disabled} overflow-hidden w-full">
+            <input type="checkbox" value="${t}" ${isChecked ? 'checked' : ''} onchange="toggleGroupTeacher(this)" class="shrink-0 w-4 h-4 md:w-5 md:h-5 text-pink-600 focus:ring-pink-500 rounded" ${!isChecked && tempSelected.length >= 4 ? 'disabled' : ''}>
+            <span class="font-bold text-gray-700 text-[11px] min-[375px]:text-xs md:text-base tracking-tighter truncate">${displayName}</span>
           </label>
         `;
       }).join('');
