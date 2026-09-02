@@ -83,12 +83,12 @@
       overflow: hidden; /* 防止內容撐開格子 */
     }
 
-    /* 新增：當切換到資源班時，稍微縮小格子高度，保證早自習加進去後總高度不變，免滑動！ */
+    /* 當切換到資源班時，稍微縮小格子高度，保證早自習加進去後總高度不變，免滑動！ */
     .resource-table td {
       height: 52px;
     }
 
-    /* 新增：李介麟老師專用（含早自習與第八節），高度再次微調防溢出 */
+    /* 李介麟老師專用（含早自習與第八節），高度再次微調防溢出 */
     .resource-extended-table td {
       height: 47px;
     }
@@ -177,7 +177,7 @@
     </div>
   </div>
 
-  <!-- === 新增：校園地圖彈出視窗 === -->
+  <!-- === 新增：校園地圖彈出視窗 (輪播模式) === -->
   <div id="mapModal" class="fixed inset-0 bg-black/90 z-[100] hidden flex-col items-center justify-center opacity-0 transition-opacity duration-300">
     <!-- 圖片容器 (解開寬度封印，最大化 95% 寬高) -->
     <div class="relative w-[95vw] h-[95vh] flex flex-col items-center justify-center">
@@ -196,7 +196,7 @@
       </button>
 
       <!-- 圖片本體 (預設顯示 map1.png) -->
-      <img id="mapImage" src="map1.png" alt="校園資訊圖" class="w-full h-full object-contain rounded-xl shadow-2xl bg-[#fffdfa]" onerror="this.onerror=null; this.src='https://placehold.co/800x600/eeeeee/999999?text=尚未上傳+map1.png';">
+      <img id="mapImage" src="map1.png" alt="校園資訊圖" class="w-full h-full object-contain rounded-xl shadow-2xl bg-[#fffdfa]" onerror="this.onerror=null; this.src='https://placehold.co/800x600/eeeeee/999999?text=尚未上傳+map' + currentMapIndex + '.png';">
 
       <!-- ➡️ 向右箭頭 -->
       <button onclick="nextMap(event)" class="absolute right-0 top-1/2 -translate-y-1/2 text-white hover:text-gray-300 focus:outline-none bg-black/40 rounded-full p-2 z-[110] backdrop-blur-sm mr-2 md:mr-4">
@@ -212,24 +212,45 @@
     </div>
   </div>
 
+  <!-- === 新增：群組選擇彈出視窗 (超級過濾器) === -->
+  <div id="groupModal" class="fixed inset-0 bg-black/80 z-[100] hidden flex-col items-center justify-center opacity-0 transition-opacity duration-300">
+    <div class="bg-white w-[90vw] max-w-lg rounded-2xl shadow-2xl p-4 md:p-6 flex flex-col max-h-[85vh]">
+      <div class="flex justify-between items-center mb-4">
+        <h3 class="text-lg md:text-2xl font-bold text-gray-800">🤝 挑選比對老師 (最多4位)</h3>
+        <button onclick="hideGroupModal()" class="text-gray-500 hover:text-red-500">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 md:h-8 md:w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
+        </button>
+      </div>
+      <div class="text-sm text-gray-500 mb-2 font-bold">請勾選要比對空堂的老師：</div>
+      <div id="groupTeacherList" class="flex-1 overflow-y-auto grid grid-cols-2 sm:grid-cols-3 gap-2 md:gap-3 p-1">
+        <!-- JS 動態產生勾選清單 -->
+      </div>
+      <div class="mt-4 flex justify-between items-center border-t pt-4">
+        <span id="groupCountText" class="font-bold text-pink-600 tracking-widest text-lg">已選: 0/4</span>
+        <button onclick="confirmGroupSelection()" class="bg-pink-500 hover:bg-pink-600 text-white font-bold py-2 px-6 rounded-lg transition-colors">確定比較</button>
+      </div>
+    </div>
+  </div>
+
   <div class="app-container">
     
-    <!-- 最上方大標題 (使用 clamp 確保手機版一定單行，不跨行) -->
+    <!-- 最上方大標題 -->
     <div class="text-center mb-3 md:mb-5">
       <h2 class="font-bold text-gray-700 whitespace-nowrap" style="font-size: clamp(16px, 5.3vw, 42px);">
         高雄市小港區二苓國小115學年度課表
       </h2>
     </div>
 
-    <!-- 控制面板 (加上 flex-wrap 讓手機螢幕太窄時可以自動換行，不會切斷名字) -->
+    <!-- 控制面板 -->
     <div class="no-print flex flex-row flex-wrap gap-2 md:gap-4 items-end justify-center mb-3">
       
-      <!-- 身份選擇 -->
+      <!-- 身份選擇 (新增群組選項) -->
       <div class="flex flex-col gap-1">
         <label class="text-[10px] md:text-sm font-semibold text-gray-600 pl-1">身份</label>
         <select id="roleSelect" class="w-auto pl-2 pr-5 py-1 bg-orange-50 border-2 border-orange-200 rounded-lg text-orange-900 focus:outline-none text-xs md:text-lg font-bold">
           <option value="導師">導師</option>
           <option value="科任">科任</option>
+          <option value="群組">群組</option>
         </select>
       </div>
 
@@ -258,25 +279,29 @@
       <!-- 科任：教師選擇 -->
       <div id="teacherSelectWrapper" class="flex flex-col gap-1 hidden">
         <label class="text-[10px] md:text-sm font-semibold text-gray-600 pl-1">名字</label>
-        <!-- 移除限制寬度與隱藏文字的設定，讓完整姓名可以顯示 -->
         <select id="teacherSelect" class="w-auto pl-2 pr-5 py-1 bg-purple-50 border-2 border-purple-200 rounded-lg text-purple-900 focus:outline-none text-xs md:text-lg font-bold">
           <!-- JS 動態生成 -->
         </select>
       </div>
 
-      <!-- === 新增：地圖按鈕 (彩色 🗺️ 圖示) === -->
+      <!-- === 新增：群組挑選按鈕 (預設隱藏) === -->
+      <div id="groupSelectWrapper" class="flex flex-col gap-1 hidden">
+        <label class="text-[10px] md:text-sm font-semibold text-gray-600 pl-1">挑選名單</label>
+        <button id="groupSelectBtn" onclick="showGroupModal()" class="w-auto px-3 py-1 bg-pink-50 border-2 border-pink-200 rounded-lg text-pink-900 font-bold text-xs md:text-lg hover:bg-pink-100 transition-colors">➕ 挑選老師 (0/4)</button>
+      </div>
+
+      <!-- 地圖按鈕 (彩色 🗺️ 圖示) -->
       <div class="flex flex-col gap-1 pb-[2px] md:pb-[3px]">
-        <button onclick="showMap()" class="w-[28px] h-[28px] md:w-[38px] md:h-[38px] bg-white border-2 border-gray-200 rounded-lg flex items-center justify-center shadow-sm hover:bg-gray-50 hover:border-gray-300 transition-colors focus:outline-none text-sm md:text-xl" title="查看校園地圖">
+        <button onclick="showMap()" class="w-[28px] h-[28px] md:w-[38px] md:h-[38px] bg-white border-2 border-gray-200 rounded-lg flex items-center justify-center shadow-sm hover:bg-gray-50 hover:border-gray-300 transition-colors focus:outline-none text-sm md:text-2xl" title="查看校園地圖">
           🗺️
         </button>
       </div>
 
     </div>
 
-    <!-- 中間大標題：班級名稱 / 老師尊稱 -->
+    <!-- 中間大標題 -->
     <div class="text-center mb-2 md:mb-4 relative w-full flex items-center justify-center">
       <h1 id="scheduleTitle" class="text-2xl md:text-4xl font-bold text-gray-800 tracking-wider w-full">一年1班</h1>
-      <!-- 絕對定位：使用 top-1/2 -translate-y-1/2 讓區塊垂直置中對齊，字體微縮並縮小行距 -->
       <div id="extNumber" class="absolute right-0 top-1/2 -translate-y-1/2 text-[10px] min-[375px]:text-[11px] md:text-[15px] font-bold text-gray-600 pr-1 leading-tight"></div>
     </div>
 
@@ -289,7 +314,6 @@
               <span class="top-right">星期</span>
               <span class="bottom-left">時間</span>
             </th>
-            <!-- 拿掉原本固定的 17% 寬度，交由瀏覽器自動均分，就不會算錯而吃掉線條了 -->
             <th>星期一</th>
             <th>星期二</th>
             <th>星期三</th>
@@ -314,40 +338,36 @@
     const loginBox = document.getElementById('loginBox');
     const passcodeInput = document.getElementById('passcodeInput');
     const errorMsg = document.getElementById('errorMsg');
+    
+    // 全域變數宣告
+    let isFocusMode = false;
+    let selectedGroupTeachers = []; // 儲存已選的群組老師名單
 
-    // 檢查瀏覽器是否已經有解鎖紀錄 (若有，直接隱藏遮罩)
+    // 檢查瀏覽器是否已經有解鎖紀錄
     if (localStorage.getItem('erlingUnlocked') === 'true') {
       lockOverlay.style.display = 'none';
     }
 
-    // 點擊右下角，顯示輸入框
     window.showLoginBox = function() {
       loginBox.classList.remove('hidden');
       passcodeInput.focus();
     };
 
-    // 驗證密碼
     window.checkPasscode = function() {
       if (passcodeInput.value === PASSCODE) {
-        localStorage.setItem('erlingUnlocked', 'true'); // 記住這台裝置
-        lockOverlay.style.opacity = '0'; // 淡出特效
-        setTimeout(() => {
-          lockOverlay.style.display = 'none';
-        }, 500);
+        localStorage.setItem('erlingUnlocked', 'true');
+        lockOverlay.style.opacity = '0';
+        setTimeout(() => { lockOverlay.style.display = 'none'; }, 500);
       } else {
-        errorMsg.classList.remove('hidden'); // 顯示錯誤
-        passcodeInput.value = ''; // 清空輸入框
+        errorMsg.classList.remove('hidden');
+        passcodeInput.value = '';
         passcodeInput.focus();
       }
     };
 
-    // 支援手機或電腦按 Enter 鍵直接送出
     passcodeInput.addEventListener('keypress', function (e) {
-      if (e.key === 'Enter') {
-        checkPasscode();
-      }
+      if (e.key === 'Enter') checkPasscode();
     });
-    // ==========================================
 
     // 班級資料設定
     const classOptions = [
@@ -361,7 +381,7 @@
       '六年1班', '六年2班', '六年3班'
     ];
 
-    // 科任教師資料設定 (已更新真實名單)
+    // 科任教師資料設定
     const subjectTeachers = {
       '教務處': ['教務主任-楊淑雯', '教學組長-施雅芸', '註冊組長-林怡伶', '資訊執秘-陳宏漳'],
       '學務處': ['學務主任-謝宛娜', '生教體育-李宜昆', '訓育衛生-胡芝琳', '午餐執秘-邱子芸'],
@@ -371,7 +391,6 @@
       '純科任': ['陳韶絃', '李柏勳', '黃上乘', '葉玟孝', '吳建緯', '盧岱岑']
     };
 
-    // 課表節次框架設定 (新增 origIndex 確保與常態班級資料對齊，不會因為多出早自習而錯亂)
     const timeSlots = [
       { name: '第一節', time: '08:30-09:10', isBreak: false, origIndex: 0 },
       { name: '第二節', time: '09:20-10:00', isBreak: false, origIndex: 1 },
@@ -383,7 +402,7 @@
       { name: '第七節', time: '15:20-16:00', isBreak: false, origIndex: 7 },
     ];
 
-    // 儲存各班級真實課表的資料庫 (全校 19 個班級)
+    // 儲存各班級真實課表的資料庫
     const classSchedules = {
       '一年1班': {
         'MON': [ { s: '國語', t: '徐淑卿' }, { s: '數學', t: '徐淑卿' }, { s: '彈英', t: '盧岱岑' }, { s: '彈性', t: '徐淑卿' }, { s: '午休' }, { s: '', t: '' }, { s: '', t: '' }, { s: '', t: '' } ],
@@ -560,11 +579,13 @@
     const deptSelect = document.getElementById('deptSelect');
     const teacherSelectWrapper = document.getElementById('teacherSelectWrapper');
     const teacherSelect = document.getElementById('teacherSelect');
+    const groupSelectWrapper = document.getElementById('groupSelectWrapper');
+    const groupSelectBtn = document.getElementById('groupSelectBtn');
     const scheduleTitle = document.getElementById('scheduleTitle');
     const scheduleBody = document.getElementById('scheduleBody');
-    const extNumber = document.getElementById('extNumber'); // 新增分機號碼綁定
+    const extNumber = document.getElementById('extNumber');
 
-    // 老師分機資料庫 (解決重複分機，自動取後者)
+    // 老師分機資料庫
     const teacherExtensions = {
       '徐淑卿': '711', '李宜昆': '211', '楊淑雯': '11/318', '施雅芸': '111/764',
       '林怡伶': '111/782', '陳宏漳': '118', '謝宛娜': '21',  '胡芝琳': '212/776',
@@ -579,7 +600,6 @@
       '李沛玲': '763'
     };
 
-    // 科任教室位置資料庫
     const teacherClassrooms = {
       '盧岱岑': '語言教室A', '吳建緯': '語言教室B', '陳韶絃': '美勞教室A',
       '葉玟孝': '社會教室', '黃上乘': '自然教室A', '李柏勳': '校本教室',
@@ -588,7 +608,7 @@
       '邱文彥': '自然教室D', '周怡君': '音樂教室'
     };
 
-    // ⭐ 剛剛遺漏的核心功能：自動計算班級導師 (掃描該班上最多次課的老師)
+    // 自動計算班級導師
     function getHomeroomTeacher(className) {
       if (!classSchedules[className]) return '';
       const teacherCounts = {};
@@ -610,13 +630,30 @@
       return hrTeacher;
     }
 
-    // 記錄是否開啟導師聚焦模式
-    let isFocusMode = false;
+    // 取得指定老師在特定節次的活動 (用於群組比對)
+    function getTeacherActivity(teacherName, dayKey, slotIndex) {
+      // 先找資源班
+      if (resourceSchedules[teacherName] && resourceSchedules[teacherName][dayKey] && resourceSchedules[teacherName][dayKey][slotIndex]) {
+        const item = resourceSchedules[teacherName][dayKey][slotIndex];
+        if (item.s || item.t) return { className: '資源班', subject: item.s || '特教' };
+      }
+      // 再找普通班
+      for (const [className, schedule] of Object.entries(classSchedules)) {
+        if (schedule[dayKey] && schedule[dayKey][slotIndex]) {
+          const item = schedule[dayKey][slotIndex];
+          if (item.t === teacherName) {
+            return { className: className, subject: item.s };
+          }
+        }
+      }
+      return null; // 代表沒課
+    }
 
-    // 切換聚焦模式的函數
+    // 切換聚焦模式
     window.toggleFocusMode = function() {
+      if (roleSelect.value === '群組') return; // 群組模式不使用聚焦
       isFocusMode = !isFocusMode;
-      renderSchedule(); // 重新繪製課表產生淡化特效
+      renderSchedule(); 
     };
 
     // 更新科任教師選單
@@ -624,7 +661,6 @@
       const dept = deptSelect.value;
       const teachers = subjectTeachers[dept] || [];
       
-      // 新增：判斷如果為四處室，就在最上方加入「總表」選項
       let optionsHtml = '';
       if (['教務處', '學務處', '總務處', '輔導室'].includes(dept)) {
         optionsHtml += `<option value="👑 全處室總表">👑 全處室總表</option>`;
@@ -636,14 +672,14 @@
       teacherSelect.innerHTML = optionsHtml;
     }
 
-    // ⭐ 新增：切換與儲存釘選最愛課表的邏輯
+    // 切換與儲存釘選最愛課表
     window.toggleFavorite = function(e) {
-      if (e) e.stopPropagation(); // 防止點擊星星時誤觸淡化模式
+      if (e) e.stopPropagation(); 
+      if (roleSelect.value === '群組') return; // 群組模式不釘選
       
       const currentRole = roleSelect.value;
       const savedFav = JSON.parse(localStorage.getItem('erlingFav') || 'null');
       
-      // 判斷目前這張課表是不是已經被釘選了
       let isMatch = false;
       if (savedFav && savedFav.role === currentRole) {
         if (currentRole === '導師' && savedFav.class === classSelect.value) isMatch = true;
@@ -651,10 +687,8 @@
       }
 
       if (isMatch) {
-        // 如果已經釘選，再點一次就取消釘選
         localStorage.removeItem('erlingFav');
       } else {
-        // 如果還沒釘選，就把它記進手機記憶裡
         const newFav = {
           role: currentRole,
           class: classSelect.value,
@@ -663,39 +697,42 @@
         };
         localStorage.setItem('erlingFav', JSON.stringify(newFav));
       }
-      
-      updateTitle(); // 重新繪製標題，讓星星亮起或熄滅
+      updateTitle(); 
     };
 
-    // 更新課表標題與分機號碼 (含釘選星星機制與雙層對齊)
+    // 更新課表標題與分機號碼
     function updateTitle() {
-      let targetTeacherName = ''; 
+      const starSvgSolid = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="#f59e0b" class="w-6 h-6 min-[375px]:w-7 min-[375px]:h-7 md:w-9 md:h-9 drop-shadow-sm"><path fill-rule="evenodd" d="M10.788 3.21c.448-1.077 1.976-1.077 2.424 0l2.082 5.007 5.404.433c1.164.093 1.636 1.545.749 2.305l-4.117 3.527 1.257 5.273c.271 1.136-.964 2.033-1.96 1.425L12 18.354 7.373 21.18c-.996.608-2.231-.29-1.96-1.425l1.257-5.273-4.117-3.527c-.887-.76-.415-2.212.749-2.305l5.404-.433 2.082-5.006z" clip-rule="evenodd" /></svg>`;
+      const starSvgOutline = `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="#cbd5e1" class="w-6 h-6 min-[375px]:w-7 min-[375px]:h-7 md:w-9 md:h-9 hover:stroke-yellow-400 transition-colors"><path stroke-linecap="round" stroke-linejoin="round" d="M11.48 3.499a.562.562 0 011.04 0l2.125 5.111a.563.563 0 00.475.345l5.518.442c.499.04.701.663.321.988l-4.204 3.602a.563.563 0 00-.182.557l1.285 5.385c.148.621-.531 1.12-1.097.82l-4.773-2.533a.563.563 0 00-.536 0l-4.773 2.533c-.566.3-.1245-.199.022-.82l1.285-5.385a.563.563 0 00-.182-.557l-4.204-3.602c-.38-.325-.178-.948.321-.988l5.518-.442a.563.563 0 00.475-.345L11.48 3.5z" /></svg>`;
 
-      // 檢查目前的課表是否有被釘選，決定星星的狀態
+      if (roleSelect.value === '群組') {
+        scheduleTitle.innerHTML = `<span class="relative right-4 min-[375px]:right-5 md:right-6 inline-flex items-center">
+          <span class="text-[21px] min-[375px]:text-2xl md:text-4xl ml-2 md:ml-4">🤝 共同空堂比對</span>
+        </span>`;
+        extNumber.innerHTML = `<div class="text-[12px] md:text-sm text-pink-600 font-bold mt-1 tracking-widest">已選 ${selectedGroupTeachers.length} 人</div>`;
+        renderSchedule();
+        return;
+      }
+
+      let targetTeacherName = ''; 
       const savedFav = JSON.parse(localStorage.getItem('erlingFav') || 'null');
       let isFav = false;
       if (savedFav && savedFav.role === roleSelect.value) {
           if (roleSelect.value === '導師' && savedFav.class === classSelect.value) isFav = true;
           if (roleSelect.value === '科任' && savedFav.dept === deptSelect.value && savedFav.teacher === teacherSelect.value) isFav = true;
       }
-
-      // 星星的精緻圖案 (實心黃色 vs 空心灰色)
-      const starSvgSolid = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="#f59e0b" class="w-6 h-6 min-[375px]:w-7 min-[375px]:h-7 md:w-9 md:h-9 drop-shadow-sm"><path fill-rule="evenodd" d="M10.788 3.21c.448-1.077 1.976-1.077 2.424 0l2.082 5.007 5.404.433c1.164.093 1.636 1.545.749 2.305l-4.117 3.527 1.257 5.273c.271 1.136-.964 2.033-1.96 1.425L12 18.354 7.373 21.18c-.996.608-2.231-.29-1.96-1.425l1.257-5.273-4.117-3.527c-.887-.76-.415-2.212.749-2.305l5.404-.433 2.082-5.006z" clip-rule="evenodd" /></svg>`;
-      const starSvgOutline = `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="#cbd5e1" class="w-6 h-6 min-[375px]:w-7 min-[375px]:h-7 md:w-9 md:h-9 hover:stroke-yellow-400 transition-colors"><path stroke-linecap="round" stroke-linejoin="round" d="M11.48 3.499a.562.562 0 011.04 0l2.125 5.111a.563.563 0 00.475.345l5.518.442c.499.04.701.663.321.988l-4.204 3.602a.563.563 0 00-.182.557l1.285 5.385c.148.621-.531 1.12-1.097.82l-4.773-2.533a.563.563 0 00-.536 0l-4.773 2.533c-.566.3-.1245-.199.022-.82l1.285-5.385a.563.563 0 00-.182-.557l-4.204-3.602c-.38-.325-.178-.948.321-.988l5.518-.442a.563.563 0 00.475-.345L11.48 3.5z" /></svg>`;
       const starBtn = `<span onclick="toggleFavorite(event)" class="cursor-pointer hover:scale-110 active:scale-95 transition-transform mr-1 md:mr-2" title="釘選這張課表">${isFav ? starSvgSolid : starSvgOutline}</span>`;
 
       if (roleSelect.value === '導師') {
         const currentClass = classSelect.value;
         if (currentClass.includes('總表')) {
-          // 👑 年級總表專屬標題處理
           scheduleTitle.innerHTML = `<span class="relative right-4 min-[375px]:right-5 md:right-6 inline-flex items-center">
             ${starBtn}
             <span onclick="toggleFocusMode()" class="cursor-pointer text-[21px] min-[375px]:text-2xl md:text-4xl">${currentClass.replace('👑 ', '')}</span>
           </span>`;
-          targetTeacherName = '👑 年級總表'; // 設定虛擬姓名以跳過分機查詢
+          targetTeacherName = '👑 年級總表'; 
         } else {
           const hrTeacher = getHomeroomTeacher(currentClass);
-          // 加入 inline-flex 讓星星與標題在同一行完美置中對齊
           scheduleTitle.innerHTML = `<span class="relative right-4 min-[375px]:right-5 md:right-6 inline-flex items-center">
             ${starBtn}
             <span onclick="toggleFocusMode()" class="cursor-pointer text-[21px] min-[375px]:text-2xl md:text-4xl">${currentClass} 導師:${hrTeacher}</span>
@@ -709,26 +746,21 @@
         let name = rawValue;
         let suffix = ' 老師';
 
-        // 👑 總表專屬標題處理
         if (rawValue === '👑 全處室總表') {
           scheduleTitle.innerHTML = `<span class="relative right-4 min-[375px]:right-5 md:right-6 inline-flex items-center">
             ${starBtn}
             <span onclick="toggleFocusMode()" class="cursor-pointer text-[21px] min-[375px]:text-2xl md:text-4xl">${deptSelect.value} 總表</span>
           </span>`; 
-          targetTeacherName = '👑 全處室總表'; // 設定虛擬姓名以跳過教室查詢
+          targetTeacherName = '👑 全處室總表'; 
         } else if (rawValue === '🏀 體育課總表') {
           scheduleTitle.innerHTML = `<span class="relative right-4 min-[375px]:right-5 md:right-6 inline-flex items-center">
             ${starBtn}
             <span onclick="toggleFocusMode()" class="cursor-pointer text-[21px] min-[375px]:text-2xl md:text-4xl">🏀 體育課總表</span>
           </span>`; 
-          targetTeacherName = '🏀 體育課總表'; // 設定虛擬姓名以跳過分機查詢
+          targetTeacherName = '🏀 體育課總表';
         } else {
-          if (rawValue.includes('-')) {
-            name = rawValue.split('-')[1];
-          }
-          if (rawValue.includes('主任')) {
-            suffix = ' 主任';
-          }
+          if (rawValue.includes('-')) name = rawValue.split('-')[1];
+          if (rawValue.includes('主任')) suffix = ' 主任';
 
           scheduleTitle.innerHTML = `<span class="relative right-4 min-[375px]:right-5 md:right-6 inline-flex items-center">
             ${starBtn}
@@ -738,13 +770,10 @@
         }
       }
 
-      // 查詢並更新分機號碼與教室顯示 (雙層樓，網格對齊，沉底對齊)
       if (targetTeacherName === '👑 全處室總表' || targetTeacherName === '👑 年級總表' || targetTeacherName === '🏀 體育課總表') {
-        // 總表模式：隱藏右側分機，保持畫面乾淨
         extNumber.innerHTML = '';
       } else {
         let ext = teacherExtensions[targetTeacherName] || '無';
-        
         if (roleSelect.value === '科任' && teacherClassrooms[targetTeacherName]) {
           let room = teacherClassrooms[targetTeacherName];
           extNumber.innerHTML = `
@@ -764,7 +793,6 @@
           `;
         }
       }
-
       renderSchedule(); 
     }
 
@@ -772,19 +800,17 @@
     function renderSchedule() {
       let html = '';
       const days = ['MON', 'TUE', 'WED', 'THU', 'FRI'];
+      const currentRole = roleSelect.value;
+      const isTeacherView = currentRole === '科任';
+      const isGroupView = currentRole === '群組';
       const currentClass = classSelect.value;
-      const isTeacherView = roleSelect.value === '科任';
-      
-      // 取出導師姓名 (用來判斷聚焦模式)
       const hrTeacher = getHomeroomTeacher(currentClass);
 
-      // 取出科任老師的純姓名 (用來比對資料庫)
       let currentTeacher = teacherSelect.value;
       if (currentTeacher && currentTeacher.includes('-')) {
         currentTeacher = currentTeacher.split('-')[1];
       }
 
-      // 判斷是否為資源班：如果是，幫表格套用縮小高度的專屬設計
       const isResource = isTeacherView && deptSelect.value === '資源班';
       const tableEl = document.querySelector('table');
       if (isResource) {
@@ -800,11 +826,9 @@
         tableEl.classList.remove('resource-extended-table');
       }
 
-      // 動態產生這張課表要顯示的節次 (資源班專屬早自習，時間暫設 07:50-08:30)
       let activeTimeSlots = [...timeSlots];
       if (isResource) {
         activeTimeSlots.unshift({ name: '早自習', time: '07:50-08:30', isBreak: false, origIndex: -1 });
-        // 新增：只有李介麟老師專屬的第八節
         if (currentTeacher === '李介麟') {
           activeTimeSlots.push({ name: '第八節', time: '16:05-16:45', isBreak: false, origIndex: 8 });
         }
@@ -812,36 +836,47 @@
 
       activeTimeSlots.forEach((slot) => {
         html += `<tr>`;
-        // 第一欄：節次與時間 (字體同步微調放大)
         let timeFormatted = slot.time.replace('-', '<br>');
         html += `<td class="time-col">
                    <div class="font-bold text-[13px] md:text-2xl">${slot.name}</div>
                    <div class="text-[10px] md:text-base text-gray-600 mt-1 leading-tight">${timeFormatted}</div>
                  </td>`;
         
-        // 午休
         if (slot.isBreak) {
           html += `<td colspan="5" class="lunch-break font-bold">午 🍽️ 餐 😴 午 💤 休</td>`;
         } else {
-          // 星期一到星期五
           for (let i = 0; i < 5; i++) {
             let dayKey = days[i];
             let cellData = { subject: '', teacher: '' };
-            let masterScheduleItems = []; // 新增：用於裝載處室總表資料
+            let masterScheduleItems = []; 
+            let groupBusyTeachers = []; // 給群組模式使用
 
-            if (isResource) {
-              // 【資源班專屬】：直接讀取 resourceSchedules 的資料 (包含 -1 早自習)
+            if (isGroupView) {
+              // 🤝 【群組模式邏輯】 (超級過濾器)
+              if (slot.origIndex >= 0 && selectedGroupTeachers.length > 0) {
+                const colorPalette = ['text-blue-700', 'text-green-700', 'text-orange-600', 'text-purple-700'];
+                
+                selectedGroupTeachers.forEach((tName, tIndex) => {
+                  let activity = getTeacherActivity(tName, dayKey, slot.origIndex);
+                  if (activity) {
+                    let shortClass = activity.className.replace(/(一|二|三|四|五|六)年(\d)班/, (match, p1, p2) => `${{'一':1,'二':2,'三':3,'四':4,'五':5,'六':6}[p1]}-${p2}`);
+                    let shortName = tName.length >= 2 ? tName.slice(-2) : tName;
+                    let tColor = colorPalette[tIndex % colorPalette.length];
+                    groupBusyTeachers.push({
+                      displayHtml: `<div class="text-[8px] min-[375px]:text-[9px] md:text-[14px] leading-[1.2] whitespace-nowrap overflow-hidden ${tColor} font-bold w-full">${shortName}: ${shortClass} ${activity.subject}</div>`
+                    });
+                  }
+                });
+              }
+            } else if (isResource) {
               if (resourceSchedules[currentTeacher] && resourceSchedules[currentTeacher][dayKey] && resourceSchedules[currentTeacher][dayKey][slot.origIndex]) {
                 const item = resourceSchedules[currentTeacher][dayKey][slot.origIndex];
                 cellData = { subject: item.s, teacher: item.t || '' };
               }
             } else {
-              // 【常態班級與一般科任】：排除早自習 (-1)，只抓常態節次 (0~7)
               if (slot.origIndex >= 0) {
                 if (!isTeacherView) {
-                  // 【導師視角】
                   if (currentClass.includes('總表')) {
-                    // 👑 導師年級總表模式
                     const gradeMatch = currentClass.match(/(一|二|三|四|五|六)年級/);
                     const gradeStr = gradeMatch ? gradeMatch[1] + '年' : '';
                     const colorPalette = ['text-green-700', 'text-blue-700', 'text-purple-700', 'text-amber-600', 'text-cyan-700', 'text-stone-600'];
@@ -854,7 +889,6 @@
                         
                         if (schedule[dayKey] && schedule[dayKey][slot.origIndex]) {
                           const item = schedule[dayKey][slot.origIndex];
-                          // ⭐ 核心邏輯：該節課必須是導師本人上的才顯示 (過濾掉科任課)
                           if (item.t === hrTeacher) {
                             let shortClass = className.replace(/(一|二|三|四|五|六)年(\d)班/, (match, p1, p2) => `${{'一':1,'二':2,'三':3,'四':4,'五':5,'六':6}[p1]}-${p2}`);
                             let shortName = hrTeacher.length >= 2 ? hrTeacher.slice(-2) : hrTeacher;
@@ -869,33 +903,26 @@
                     }
                     masterScheduleItems.sort((a, b) => a.sortKey.localeCompare(b.sortKey));
                   } else {
-                    // 一般單一導師班級
                     if (classSchedules[currentClass] && classSchedules[currentClass][dayKey] && classSchedules[currentClass][dayKey][slot.origIndex]) {
                       const item = classSchedules[currentClass][dayKey][slot.origIndex];
                       cellData = { subject: item.s, teacher: item.t || '' };
                     }
                   }
                 } else {
-                  // 【科任視角】
                   if (currentTeacher === '👑 全處室總表') {
-                    // 👑 總表模式：掃描目前處室的「所有人」
                     let deptTeachers = subjectTeachers[deptSelect.value] || [];
-                    // 定義專屬的老師顏色 (調換前兩個顏色，讓宛娜為綠色、宜昆為藍色)
                     const colorPalette = ['text-green-700', 'text-blue-700', 'text-purple-700', 'text-amber-600', 'text-cyan-700', 'text-stone-600'];
                     
                     deptTeachers.forEach((fullTeacherStr, tIndex) => {
                       let tName = fullTeacherStr.includes('-') ? fullTeacherStr.split('-')[1] : fullTeacherStr;
-                      let tColor = colorPalette[tIndex % colorPalette.length]; // 依照處室名單順序給予專屬顏色
+                      let tColor = colorPalette[tIndex % colorPalette.length]; 
                       
                       for (const [className, schedule] of Object.entries(classSchedules)) {
                         if (schedule[dayKey] && schedule[dayKey][slot.origIndex]) {
                           const item = schedule[dayKey][slot.origIndex];
                           if (item.t === tName) {
-                            // 轉換班級名稱 (例如: 一年1班 -> 1-1)
                             let shortClass = className.replace(/(一|二|三|四|五|六)年(\d)班/, (match, p1, p2) => `${{'一':1,'二':2,'三':3,'四':4,'五':5,'六':6}[p1]}-${p2}`);
-                            // 轉換姓名為後兩字
                             let shortName = tName.length >= 2 ? tName.slice(-2) : tName;
-                            // 將資料轉為物件，同時保存排序用的字串與最終顯示的帶顏色 HTML
                             masterScheduleItems.push({
                               sortKey: shortClass,
                               displayHtml: `<div class="text-[8px] min-[375px]:text-[9px] min-[400px]:text-[10px] md:text-[15px] tracking-tighter leading-[1.2] whitespace-nowrap overflow-hidden ${tColor} font-bold w-full">${shortClass}&nbsp;${item.s}(${shortName})</div>`
@@ -905,23 +932,14 @@
                         }
                       }
                     });
-
-                    // ⭐ 新增排序機制：將收集到的課程依照班級字首 (1-1, 1-2...) 由小到大排序
                     masterScheduleItems.sort((a, b) => a.sortKey.localeCompare(b.sortKey));
-
                   } else if (currentTeacher === '🏀 體育課總表') {
-                    // 🏀 體育專屬模式：跨處室抓取「科目 = 體育」的課，並分配專屬無紅色系
-                    const peColorMap = {
-                      '宜昆': 'text-blue-700',
-                      '金池': 'text-purple-700',
-                      '柏勳': 'text-teal-700'
-                    };
-                    const defaultColor = 'text-amber-600'; // 備用色
+                    const peColorMap = { '宜昆': 'text-blue-700', '金池': 'text-purple-700', '柏勳': 'text-teal-700' };
+                    const defaultColor = 'text-amber-600'; 
 
                     for (const [className, schedule] of Object.entries(classSchedules)) {
                       if (schedule[dayKey] && schedule[dayKey][slot.origIndex]) {
                         const item = schedule[dayKey][slot.origIndex];
-                        // ⭐ 核心過濾條件：只抓體育課！
                         if (item.s === '體育') {
                           let tName = item.t;
                           let shortClass = className.replace(/(一|二|三|四|五|六)年(\d)班/, (match, p1, p2) => `${{'一':1,'二':2,'三':3,'四':4,'五':5,'六':6}[p1]}-${p2}`);
@@ -935,15 +953,11 @@
                         }
                       }
                     }
-                    
                     masterScheduleItems.sort((a, b) => a.sortKey.localeCompare(b.sortKey));
-
                   } else {
-                    // 原本的一般科任邏輯
                     for (const [className, schedule] of Object.entries(classSchedules)) {
                       if (schedule[dayKey] && schedule[dayKey][slot.origIndex]) {
                         const item = schedule[dayKey][slot.origIndex];
-                        // 如果這節課是這個老師上的
                         if (item.t === currentTeacher) {
                           cellData = { subject: item.s, teacher: className }; 
                           break; 
@@ -955,9 +969,26 @@
               }
             }
 
-            // 開始繪製單一格子
-            if (masterScheduleItems.length > 0) {
-              // 👑 處室總表專屬繪製：直接取用已經帶有顏色的 displayHtml
+            if (isGroupView && selectedGroupTeachers.length > 0 && slot.origIndex >= 0) {
+              // 渲染群組過濾器結果
+              if (groupBusyTeachers.length === 0) {
+                // 🌟 共同空堂！
+                html += `<td class="bg-yellow-100 transition-colors duration-500 border-2 border-yellow-300">
+                           <div class="flex flex-col justify-center items-center h-full gap-1 w-full text-yellow-600 font-bold text-xs md:text-xl">
+                             <span>🌟</span>
+                             <span>共同空堂</span>
+                           </div>
+                         </td>`;
+              } else {
+                // 顯示各自的課
+                let combinedHtml = groupBusyTeachers.map(item => item.displayHtml).join('');
+                html += `<td class="px-0 transition-opacity duration-500">
+                           <div class="flex flex-col justify-center items-center h-full gap-[2px] w-full">
+                             ${combinedHtml}
+                           </div>
+                         </td>`;
+              }
+            } else if (masterScheduleItems.length > 0) {
               let fadeClass = isFocusMode ? 'opacity-10 transition-opacity duration-500' : 'transition-opacity duration-500';
               let combinedHtml = masterScheduleItems.map(item => item.displayHtml).join('');
               html += `<td class="${fadeClass} px-0">
@@ -966,7 +997,6 @@
                          </div>
                        </td>`;
             } else if (cellData.subject || cellData.teacher) {
-              // 判斷是否要啟動淡化特效 (聚焦模式開啟 且 該節課不是導師上的)，透明度 10%
               let fadeClass = '';
               if (!isTeacherView && isFocusMode && cellData.teacher !== hrTeacher) {
                 fadeClass = 'opacity-10 transition-opacity duration-500';
@@ -975,21 +1005,16 @@
               }
 
               let teacherHtml = '';
-              if (!isTeacherView) {
-                // 導師視角：點擊跳轉到該科任老師 (隱藏提示，純灰色)
+              if (!isTeacherView && !isGroupView) {
                 teacherHtml = `<div onclick="goToTeacher('${cellData.teacher}')" class="text-[12px] min-[400px]:text-[13px] md:text-[20px] text-gray-500 whitespace-nowrap overflow-hidden text-ellipsis mt-0.5 cursor-pointer rounded mx-1">${cellData.teacher}</div>`;
-              } else {
-                // 科任視角：點擊跳轉到該班級 (隱藏提示，純灰色)
+              } else if (isTeacherView) {
                 if (isResource) {
-                  // 資源班專屬：徹底移除跳轉功能與手指圖示，並加上 pointer-events-none 強制阻斷點擊
                   teacherHtml = `<div class="text-[12px] min-[400px]:text-[13px] md:text-[20px] text-gray-500 whitespace-nowrap overflow-hidden text-ellipsis mt-0.5 rounded mx-1 pointer-events-none">${cellData.teacher}</div>`;
                 } else {
-                  // 一般科任：保留點擊跳轉班級
                   teacherHtml = `<div onclick="goToClass('${cellData.teacher}')" class="text-[12px] min-[400px]:text-[13px] md:text-[20px] text-gray-500 whitespace-nowrap overflow-hidden text-ellipsis mt-0.5 cursor-pointer rounded mx-1">${cellData.teacher}</div>`;
                 }
               }
 
-              // 新增：智慧判斷字數。如果科目字數 >= 4 (如：特殊需求、溝通訓練、社會技巧)，就單獨套用較小的字級，確保手機不截斷
               let subjectFontSize = "text-[15px] min-[400px]:text-[16px] md:text-[26px]";
               if (cellData.subject && cellData.subject.length >= 4) {
                 subjectFontSize = "text-[11px] min-[375px]:text-[12px] min-[400px]:text-[13px] md:text-[22px]";
@@ -1000,7 +1025,6 @@
                          ${teacherHtml}
                        </td>`;
             } else {
-              // 沒課的空格也一併加上淡化類別，這樣網格才會一致消失
               let emptyFadeClass = isFocusMode ? 'opacity-10 transition-opacity duration-500' : 'transition-opacity duration-500';
               html += `<td class="${emptyFadeClass}"></td>`;
             }
@@ -1013,55 +1037,40 @@
 
     // 事件監聽綁定
     roleSelect.addEventListener('change', (e) => {
-      isFocusMode = false; // 切換身分時，強制關閉聚焦模式
-      if (e.target.value === '導師') {
+      isFocusMode = false; 
+      const val = e.target.value;
+      
+      classSelectWrapper.classList.add('hidden');
+      deptSelectWrapper.classList.add('hidden');
+      teacherSelectWrapper.classList.add('hidden');
+      groupSelectWrapper.classList.add('hidden');
+
+      if (val === '導師') {
         classSelectWrapper.classList.remove('hidden');
-        deptSelectWrapper.classList.add('hidden');
-        teacherSelectWrapper.classList.add('hidden');
-        
-        // 修改：切換回導師時，自動將選單歸零回最上方的「👑 一年級總表」
         classSelect.value = '👑 一年級總表';
-      } else {
-        classSelectWrapper.classList.add('hidden');
+      } else if (val === '科任') {
         deptSelectWrapper.classList.remove('hidden');
         teacherSelectWrapper.classList.remove('hidden');
-        
-        // 新增：切換回科任時，自動將處室歸零回最頂層的「教務處」
         deptSelect.selectedIndex = 0;
-        updateTeacherOptions(); // 切換時自動更新老師名單 (會自動抓取教務處的第一位：教務主任)
+        updateTeacherOptions(); 
+      } else if (val === '群組') {
+        groupSelectWrapper.classList.remove('hidden');
       }
       updateTitle();
     });
 
-    classSelect.addEventListener('change', () => {
-      isFocusMode = false; // 切換班級時，強制關閉聚焦模式
-      updateTitle();
-    });
-    
-    deptSelect.addEventListener('change', () => {
-      isFocusMode = false; // 切換處室時，強制關閉聚焦模式
-      updateTeacherOptions();
-      updateTitle();
-    });
-    
-    teacherSelect.addEventListener('change', () => {
-      isFocusMode = false; // 切換老師時，強制關閉聚焦模式
-      updateTitle();
-    });
+    classSelect.addEventListener('change', () => { isFocusMode = false; updateTitle(); });
+    deptSelect.addEventListener('change', () => { isFocusMode = false; updateTeacherOptions(); updateTitle(); });
+    teacherSelect.addEventListener('change', () => { isFocusMode = false; updateTitle(); });
 
-    // 系統初始化函數：負責把班級與老師名單塞進選單，並畫出第一張課表
+    // 初始化下拉選單
     function initDropdowns() {
-      // 1. 動態生成班級下拉選單
       classSelect.innerHTML = classOptions.map(cls => `<option value="${cls}">${cls}</option>`).join('');
-      
-      // 2. 動態生成預設處室的老師選單
       updateTeacherOptions();
       
-      // 3. ⭐️ 讀取老師手機裡的「釘選記憶」，並自動切換到該課表
       const savedFav = JSON.parse(localStorage.getItem('erlingFav') || 'null');
-      if (savedFav) {
+      if (savedFav && savedFav.role !== '群組') {
         roleSelect.value = savedFav.role;
-        
         if (savedFav.role === '導師') {
           classSelectWrapper.classList.remove('hidden');
           deptSelectWrapper.classList.add('hidden');
@@ -1071,22 +1080,17 @@
           classSelectWrapper.classList.add('hidden');
           deptSelectWrapper.classList.remove('hidden');
           teacherSelectWrapper.classList.remove('hidden');
-          
           deptSelect.value = savedFav.dept;
-          updateTeacherOptions(); // 處室切換後，必須手動更新一次該處室的老師名單
+          updateTeacherOptions(); 
           teacherSelect.value = savedFav.teacher;
         }
       }
-      
-      // 4. 更新標題並畫出課表
       updateTitle();
     }
-
-    // 正式啟動系統
     initDropdowns();
 
     // ==========================================
-    // 地圖彈出視窗功能
+    // 地圖彈出視窗功能 (相簿輪播模式)
     // ==========================================
     const mapModal = document.getElementById('mapModal');
     const mapImage = document.getElementById('mapImage');
@@ -1094,7 +1098,6 @@
     let currentMapIndex = 1;
     const totalMaps = 3;
 
-    // 動態更新圖片與頁碼
     function updateMapDisplay() {
       mapImage.src = `map${currentMapIndex}.png`;
       mapImage.onerror = function() {
@@ -1104,14 +1107,12 @@
       mapPageNumber.textContent = currentMapIndex;
     }
 
-    // 切換下一張
     window.nextMap = function(e) {
       if (e) e.stopPropagation(); 
       currentMapIndex = currentMapIndex >= totalMaps ? 1 : currentMapIndex + 1;
       updateMapDisplay();
     };
 
-    // 切換上一張
     window.prevMap = function(e) {
       if (e) e.stopPropagation(); 
       currentMapIndex = currentMapIndex <= 1 ? totalMaps : currentMapIndex - 1;
@@ -1119,12 +1120,9 @@
     };
 
     window.showMap = function() {
-      // 確保每次點開都預設從第一張開始
       currentMapIndex = 1;
       updateMapDisplay();
-      
       mapModal.classList.remove('hidden');
-      // 延遲一點點以確保 CSS 淡入動畫能正常觸發
       setTimeout(() => {
         mapModal.classList.remove('opacity-0');
         mapModal.classList.add('opacity-100');
@@ -1135,7 +1133,6 @@
       mapModal.classList.remove('opacity-100');
       mapModal.classList.add('opacity-0');
       
-      // 🌟 縮放重置魔法：瞬間鎖定縮放再解開，迫使手機瀏覽器回到完美的 100% 比例
       const viewportMeta = document.querySelector('meta[name="viewport"]');
       if (viewportMeta) {
         viewportMeta.content = 'width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no';
@@ -1143,22 +1140,13 @@
           viewportMeta.content = 'width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes';
         }, 100);
       }
-
-      // 等待淡出動畫 (300ms) 結束後再將元素隱藏
-      setTimeout(() => {
-        mapModal.classList.add('hidden');
-      }, 300);
+      setTimeout(() => { mapModal.classList.add('hidden'); }, 300);
     };
 
-    // ==========================================
-    // 快速跳轉功能 (點擊課表內的班級或老師即可跳轉)
-    // ==========================================
+    // 快速跳轉功能
     window.goToClass = function(className) {
       if (!className || className === '') return;
-      
-      // 新增防呆機制：如果傳入的不是正常的班級名稱（例如資源班的 1A, 3 等），就直接忽略不跳轉
       if (!className.includes('班')) return; 
-      
       roleSelect.value = '導師';
       roleSelect.dispatchEvent(new Event('change'));
       classSelect.value = className;
@@ -1168,7 +1156,6 @@
     window.goToTeacher = function(teacherName) {
       if (!teacherName || teacherName === '') return;
       for (const dept in subjectTeachers) {
-        // 模糊比對老師姓名 (處理含有職稱的字串)
         const foundTeacher = subjectTeachers[dept].find(t => t.includes(teacherName));
         if (foundTeacher) {
           roleSelect.value = '科任';
@@ -1181,6 +1168,73 @@
         }
       }
     };
+
+    // ==========================================
+    // 自訂群組：彈出視窗與選擇邏輯 (超級過濾器)
+    // ==========================================
+    const groupModal = document.getElementById('groupModal');
+    const groupTeacherList = document.getElementById('groupTeacherList');
+    const groupCountText = document.getElementById('groupCountText');
+    let tempSelected = []; 
+
+    function getAllTeachersList() {
+      let teachers = new Set();
+      Object.keys(classSchedules).forEach(cls => {
+        let t = getHomeroomTeacher(cls);
+        if (t) teachers.add(t);
+      });
+      Object.values(subjectTeachers).flat().forEach(tStr => {
+        let name = tStr.includes('-') ? tStr.split('-')[1] : tStr;
+        teachers.add(name);
+      });
+      return Array.from(teachers).sort((a, b) => a.localeCompare(b, 'zh-TW'));
+    }
+
+    window.showGroupModal = function() {
+      tempSelected = [...selectedGroupTeachers];
+      renderGroupCheckboxes();
+      groupModal.classList.remove('hidden');
+      setTimeout(() => { groupModal.classList.remove('opacity-0'); groupModal.classList.add('opacity-100'); }, 10);
+    };
+
+    window.hideGroupModal = function() {
+      groupModal.classList.remove('opacity-100');
+      groupModal.classList.add('opacity-0');
+      setTimeout(() => { groupModal.classList.add('hidden'); }, 300);
+    };
+
+    function renderGroupCheckboxes() {
+      const allTeachers = getAllTeachersList();
+      groupTeacherList.innerHTML = allTeachers.map(t => {
+        let isChecked = tempSelected.includes(t);
+        let disabled = !isChecked && tempSelected.length >= 4 ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer';
+        let bgClass = isChecked ? 'bg-pink-100 border-pink-400' : 'bg-gray-50 border-gray-200';
+        return `
+          <label class="flex items-center gap-2 p-2 border-2 rounded-lg transition-colors ${bgClass} ${disabled}">
+            <input type="checkbox" value="${t}" ${isChecked ? 'checked' : ''} onchange="toggleGroupTeacher(this)" class="w-4 h-4 text-pink-600 focus:ring-pink-500 rounded" ${!isChecked && tempSelected.length >= 4 ? 'disabled' : ''}>
+            <span class="font-bold text-gray-700 text-sm md:text-lg">${t}</span>
+          </label>
+        `;
+      }).join('');
+      groupCountText.textContent = `已選: ${tempSelected.length}/4`;
+    }
+
+    window.toggleGroupTeacher = function(checkbox) {
+      if (checkbox.checked) {
+        if (tempSelected.length < 4) tempSelected.push(checkbox.value);
+        else checkbox.checked = false;
+      } else {
+        tempSelected = tempSelected.filter(t => t !== checkbox.value);
+      }
+      renderGroupCheckboxes(); 
+    }
+
+    window.confirmGroupSelection = function() {
+      selectedGroupTeachers = [...tempSelected];
+      groupSelectBtn.textContent = `➕ 挑選老師 (${selectedGroupTeachers.length}/4)`;
+      hideGroupModal();
+      updateTitle(); 
+    }
   </script>
 </body>
 </html>
