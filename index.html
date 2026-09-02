@@ -1259,11 +1259,11 @@
         let disabled = !isChecked && tempSelected.length >= 4 ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer';
         let bgClass = isChecked ? 'bg-pink-100 border-pink-400' : 'bg-gray-50 border-gray-200';
         
-        // 針對手機版微調：將上下內邊距(py)拉高解決太扁的問題，左右內邊距(px)維持安全距離，確保字不換行
+        // 恢復第一版最完美的格子間距(p-2 gap-2)，並單純縮小字體(text-[11px]~text-xs)讓文字剛好塞入單行
         return `
-          <label class="flex items-center gap-1 min-[375px]:gap-1.5 md:gap-3 py-3 px-1.5 min-[375px]:py-4 min-[375px]:px-2.5 md:p-4 border-2 rounded-lg transition-colors ${bgClass} ${disabled} overflow-hidden w-full shadow-sm">
-            <input type="checkbox" value="${t}" ${isChecked ? 'checked' : ''} onchange="toggleGroupTeacher(this)" class="shrink-0 w-3.5 h-3.5 min-[375px]:w-4 min-[375px]:h-4 md:w-6 md:h-6 text-pink-600 focus:ring-pink-500 rounded" ${!isChecked && tempSelected.length >= 4 ? 'disabled' : ''}>
-            <span class="font-bold text-gray-700 text-[10.5px] min-[375px]:text-[12px] md:text-base tracking-tighter leading-none whitespace-nowrap">${displayName}</span>
+          <label class="flex items-center gap-2 p-2 md:p-3 border-2 rounded-lg transition-colors ${bgClass} ${disabled} overflow-hidden w-full shadow-sm">
+            <input type="checkbox" value="${t}" ${isChecked ? 'checked' : ''} onchange="toggleGroupTeacher(this)" class="shrink-0 w-4 h-4 md:w-5 md:h-5 text-pink-600 focus:ring-pink-500 rounded" ${!isChecked && tempSelected.length >= 4 ? 'disabled' : ''}>
+            <span class="font-bold text-gray-700 text-[11px] min-[375px]:text-xs md:text-base tracking-tighter whitespace-nowrap w-full">${displayName}</span>
           </label>
         `;
       }).join('');
