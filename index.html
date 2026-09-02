@@ -250,7 +250,7 @@
         <select id="roleSelect" class="w-auto pl-2 pr-5 py-1 bg-orange-50 border-2 border-orange-200 rounded-lg text-orange-900 focus:outline-none text-xs md:text-lg font-bold">
           <option value="導師">導師</option>
           <option value="科任">科任</option>
-          <option value="群組">群組</option>
+          <option value="群組"> 群組</option>
         </select>
       </div>
 
@@ -1177,63 +1177,64 @@
     const groupCountText = document.getElementById('groupCountText');
     let tempSelected = []; 
 
-    // 新增：帶有前綴與自訂排序的教師名單產生器
-    function getAllTeachersWithFormat() {
-      let list = [];
-      const gradeMap = {'一':'1', '二':'2', '三':'3', '四':'4', '五':'5', '六':'6'};
+    // 新增：智慧獲取老師清單 (自動冠名與強制排序)
+    function getGroupTeacherOptions() {
+      let teacherInfo = [];
+      let seen = new Set(); 
 
-      // 1. 導師 (自動轉換成 101, 102 格式)
+      // 1. 導師名單 (自動轉換為 101~603)
       Object.keys(classSchedules).forEach(cls => {
-        let t = getHomeroomTeacher(cls);
-        if (t) {
-          let match = cls.match(/(一|二|三|四|五|六)年(\d)班/);
-          if (match) {
-            let shortClass = gradeMap[match[1]] + '0' + match[2]; // 例如: '101'
-            let weight = parseInt(shortClass); // 權重: 101 ~ 603
-            list.push({ origName: t, formattedName: `${shortClass}${t}`, weight: weight });
-          }
+        let name = getHomeroomTeacher(cls);
+        if (name && !seen.has(name)) {
+          let gradeMap = {'一':1, '二':2, '三':3, '四':4, '五':5, '六':6};
+          let grade = gradeMap[cls.charAt(0)];
+          let classNum = cls.replace(/[^0-9]/g, '');
+          let shortClass = grade + '0' + classNum; // 產生 101 格式
+          
+          teacherInfo.push({
+            originalName: name, // 系統底層依舊認得這個本名
+            displayLabel: `${shortClass} ${name}`,
+            sortWeight: parseInt(shortClass) // 權重 101~603
+          });
+          seen.add(name);
         }
       });
 
-      // 2. 科任/行政 (精準擷取職稱前兩個字)
-      const deptWeight = { '教務處': 1000, '學務處': 2000, '總務處': 3000, '輔導室': 4000, '資源班': 5000, '純科任': 6000 };
-
-      Object.entries(subjectTeachers).forEach(([dept, tList]) => {
-        tList.forEach((fullStr, index) => {
-          let name = fullStr;
-          let prefix = "";
-
-          if (fullStr.includes('-')) {
-            // 有帶職稱的，例如「教學組長-施雅芸」
-            let parts = fullStr.split('-');
-            name = parts[1];
-            // 精準取職稱的前兩個字
-            prefix = parts[0].substring(0, 2);
-          } else {
-            // 沒有帶職稱的 (如資源班、純科任)
-            if (dept === '純科任') {
-              prefix = '科任';
+      // 2. 行政與科任名單 (按處室倫理排序，並自動擷取職稱前綴)
+      const deptWeights = { '教務處': 1000, '學務處': 2000, '總務處': 3000, '輔導室': 4000, '資源班': 5000, '純科任': 6000 };
+      
+      for (const [dept, teachers] of Object.entries(subjectTeachers)) {
+        let baseWeight = deptWeights[dept] || 9000;
+        let index = 0;
+        teachers.forEach(tStr => {
+          let originalName = tStr.includes('-') ? tStr.split('-')[1] : tStr;
+          if (!seen.has(originalName)) {
+            let displayLabel = originalName;
+            
+            // 自動冠名邏輯
+            if (tStr.includes('-')) {
+              let title = tStr.split('-')[0]; // 例如: 教務主任, 教學組長
+              let prefix = title.substring(0, 2); // 擷取前兩字: 教務, 教學
+              displayLabel = `${prefix}-${originalName}`;
             } else if (dept === '資源班') {
-              prefix = '資源';
-            } else {
-              prefix = dept.substring(0, 2);
+              displayLabel = `資源-${originalName}`;
+            } else if (dept === '純科任') {
+              displayLabel = `科任-${originalName}`;
             }
+
+            teacherInfo.push({
+              originalName: originalName,
+              displayLabel: displayLabel,
+              sortWeight: 10000 + baseWeight + index // 處室順序 + 內部順序
+            });
+            seen.add(originalName);
           }
-
-          let formattedName = `${prefix}-${name}`;
-          let weight = deptWeight[dept] + index;
-          list.push({ origName: name, formattedName: formattedName, weight: weight });
+          index++;
         });
-      });
-
-      // 移除重複的人員並依照權重排序
-      let uniqueMap = new Map();
-      list.forEach(item => {
-        if (!uniqueMap.has(item.origName)) {
-          uniqueMap.set(item.origName, item);
-        }
-      });
-      return Array.from(uniqueMap.values()).sort((a, b) => a.weight - b.weight);
+      }
+      
+      // 依照權重排序後回傳
+      return teacherInfo.sort((a, b) => a.sortWeight - b.sortWeight);
     }
 
     window.showGroupModal = function() {
@@ -1250,25 +1251,18 @@
     };
 
     function renderGroupCheckboxes() {
-      // 專為手機版設定：改為「單行排列 (grid-cols-1)」，徹底解決重疊問題，允許往下滾動。
-      // 電腦版：強制維持第一版的「三欄排版 (md:grid-cols-3)」
-      groupTeacherList.className = 'flex-1 overflow-y-auto grid grid-cols-1 md:grid-cols-3 gap-3 p-2 md:p-1';
-
-      // 產生名單
-      const formattedTeachers = getAllTeachersWithFormat();
-      groupTeacherList.innerHTML = formattedTeachers.map(item => {
-        let t = item.origName;
-        let displayName = item.formattedName;
-        let isChecked = tempSelected.includes(t);
+      const options = getGroupTeacherOptions();
+      groupTeacherList.innerHTML = options.map(t => {
+        let isChecked = tempSelected.includes(t.originalName);
         let disabled = !isChecked && tempSelected.length >= 4 ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer';
         let bgClass = isChecked ? 'bg-pink-100 border-pink-400' : 'bg-gray-50 border-gray-200';
         
-        // 手機版：一行一個，高度加高 (py-4)，左右留白 (px-4)，字體放大到 15px，極致好按。
-        // 電腦版：維持 md:p-3 與 md:text-base，完美不變。
+        // 絕對凍結原本版面：gap-2 p-2 border-2 rounded-lg 100%不變
+        // 加入防線：whitespace-nowrap (不跨行) + tracking-tighter (稍微擠字) + text-[大小] (智慧縮小)
         return `
-          <label class="flex items-center gap-3 py-4 px-4 md:p-3 border-2 rounded-lg transition-colors ${bgClass} ${disabled} overflow-hidden w-full shadow-sm">
-            <input type="checkbox" value="${t}" ${isChecked ? 'checked' : ''} onchange="toggleGroupTeacher(this)" class="shrink-0 w-5 h-5 text-pink-600 focus:ring-pink-500 rounded" ${!isChecked && tempSelected.length >= 4 ? 'disabled' : ''}>
-            <span class="font-bold text-gray-700 text-[15px] md:text-base tracking-tighter whitespace-nowrap w-full">${displayName}</span>
+          <label class="flex items-center gap-2 p-2 border-2 rounded-lg transition-colors ${bgClass} ${disabled}">
+            <input type="checkbox" value="${t.originalName}" ${isChecked ? 'checked' : ''} onchange="toggleGroupTeacher(this)" class="shrink-0 w-4 h-4 text-pink-600 focus:ring-pink-500 rounded" ${!isChecked && tempSelected.length >= 4 ? 'disabled' : ''}>
+            <span class="font-bold text-gray-700 whitespace-nowrap tracking-tighter text-[11px] min-[375px]:text-[12px] sm:text-[13px] md:text-lg">${t.displayLabel}</span>
           </label>
         `;
       }).join('');
