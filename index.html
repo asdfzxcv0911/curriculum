@@ -235,6 +235,20 @@
     </div>
   </div>
 
+  <!-- === 新增：搜尋彈出視窗 === -->
+  <div id="searchModal" class="fixed inset-0 bg-black/80 z-[100] hidden flex-col items-center justify-center opacity-0 transition-opacity duration-300">
+    <div class="bg-white w-[85vw] max-w-sm rounded-2xl shadow-2xl p-5 flex flex-col relative">
+      <button onclick="hideSearchModal()" class="absolute top-3 right-3 text-gray-400 hover:text-red-500 focus:outline-none">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
+      </button>
+      <h3 class="text-xl font-bold text-gray-800 mb-3 text-center">🔍 快速搜尋</h3>
+      <div class="text-xs text-gray-500 mb-3 text-center">輸入老師姓名、班級(如:一年1班) 或 數字(如:101)</div>
+      <input type="text" id="searchInput" class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl text-center text-lg focus:outline-none focus:border-blue-400 mb-3" placeholder="請輸入關鍵字...">
+      <button onclick="executeSearch()" class="w-full bg-blue-500 hover:bg-blue-600 text-white font-bold py-3 rounded-xl transition-colors">開始搜尋</button>
+      <p id="searchError" class="hidden text-red-500 text-xs font-bold mt-2 text-center">找不到相符的課表，請重新輸入</p>
+    </div>
+  </div>
+
   <div class="app-container">
     
     <!-- 最上方大標題 -->
@@ -293,8 +307,11 @@
         <button id="groupSelectBtn" onclick="showGroupModal()" class="w-auto px-3 py-1 bg-pink-50 border-2 border-pink-200 rounded-lg text-pink-900 font-bold text-xs md:text-lg hover:bg-pink-100 transition-colors">➕ 挑選老師 (0/4)</button>
       </div>
 
-      <!-- 地圖按鈕 (彩色 🗺️ 圖示) -->
-      <div class="flex flex-col gap-1 pb-[2px] md:pb-[3px]">
+      <!-- === 放大鏡與地圖按鈕 (合併區塊) === -->
+      <div class="flex flex-row gap-1 items-end pb-[2px] md:pb-[3px]">
+        <button onclick="showSearchModal()" class="w-[28px] h-[28px] md:w-[38px] md:h-[38px] bg-white border-2 border-gray-200 rounded-lg flex items-center justify-center shadow-sm hover:bg-gray-50 hover:border-gray-300 transition-colors focus:outline-none text-sm md:text-2xl" title="搜尋班級或老師">
+          🔍
+        </button>
         <button onclick="showMap()" class="w-[28px] h-[28px] md:w-[38px] md:h-[38px] bg-white border-2 border-gray-200 rounded-lg flex items-center justify-center shadow-sm hover:bg-gray-50 hover:border-gray-300 transition-colors focus:outline-none text-sm md:text-2xl" title="查看校園地圖">
           🗺️
         </button>
@@ -1402,6 +1419,90 @@
       tempSelected = [];
       renderGroupCheckboxes();
     }
+
+    // ==========================================
+    // 搜尋功能邏輯
+    // ==========================================
+    const searchModal = document.getElementById('searchModal');
+    const searchInput = document.getElementById('searchInput');
+    const searchError = document.getElementById('searchError');
+
+    window.showSearchModal = function() {
+      searchInput.value = '';
+      searchError.classList.add('hidden');
+      searchModal.classList.remove('hidden');
+      document.body.classList.add('overflow-hidden');
+      setTimeout(() => { searchModal.classList.remove('opacity-0'); searchModal.classList.add('opacity-100'); searchInput.focus(); }, 10);
+    };
+
+    window.hideSearchModal = function() {
+      searchModal.classList.remove('opacity-100');
+      searchModal.classList.add('opacity-0');
+      document.body.classList.remove('overflow-hidden');
+      setTimeout(() => { searchModal.classList.add('hidden'); }, 300);
+    };
+
+    window.executeSearch = function() {
+      const keyword = searchInput.value.trim();
+      if (!keyword) return;
+
+      let targetClass = '';
+      let targetDept = '';
+      let targetTeacher = '';
+
+      // 1. 班級數字防呆 (例如輸入 101)
+      if (/^[1-6]0[1-9]$/.test(keyword)) {
+        const gradeMap = {'1':'一', '2':'二', '3':'三', '4':'四', '5':'五', '6':'六'};
+        targetClass = `${gradeMap[keyword[0]]}年${keyword[2]}班`;
+      } 
+      // 2. 班級正常輸入 (例如 一年1班)
+      else if (classOptions.includes(keyword)) {
+        targetClass = keyword;
+      }
+      // 3. 搜尋老師名字
+      else {
+        for (const dept in subjectTeachers) {
+          const found = subjectTeachers[dept].find(t => t.includes(keyword));
+          if (found) {
+            targetDept = dept;
+            targetTeacher = found;
+            break;
+          }
+        }
+        if (!targetTeacher) {
+          // 找找看是不是導師
+          for (const cls in classSchedules) {
+            if (getHomeroomTeacher(cls).includes(keyword)) {
+              targetClass = cls;
+              break;
+            }
+          }
+        }
+      }
+
+      if (targetClass) {
+        hideSearchModal();
+        roleSelect.value = '導師';
+        roleSelect.dispatchEvent(new Event('change'));
+        classSelect.value = targetClass;
+        classSelect.dispatchEvent(new Event('change'));
+      } else if (targetTeacher) {
+        hideSearchModal();
+        roleSelect.value = '科任';
+        roleSelect.dispatchEvent(new Event('change'));
+        deptSelect.value = targetDept;
+        deptSelect.dispatchEvent(new Event('change'));
+        teacherSelect.value = targetTeacher;
+        teacherSelect.dispatchEvent(new Event('change'));
+      } else {
+        searchError.classList.remove('hidden');
+      }
+    };
+
+    searchInput.addEventListener('keypress', function(e) {
+      if (e.key === 'Enter') executeSearch();
+    });
+
   </script>
 </body>
 </html>
