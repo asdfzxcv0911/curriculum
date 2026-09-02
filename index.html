@@ -1259,11 +1259,11 @@
         let disabled = !isChecked && tempSelected.length >= 4 ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer';
         let bgClass = isChecked ? 'bg-pink-100 border-pink-400' : 'bg-gray-50 border-gray-200';
         
-        // 恢復原本較好看的格子大小 (p-2 md:p-3)，並保留自動縮小與防破版設計
+        // 針對手機版微調：縮小打勾框、強制單行顯示 (whitespace-nowrap)，確保胖胖格子不變形且字完整呈現
         return `
-          <label class="flex items-center gap-1.5 md:gap-2 p-2 md:p-3 border-2 rounded-lg transition-colors ${bgClass} ${disabled} overflow-hidden w-full">
-            <input type="checkbox" value="${t}" ${isChecked ? 'checked' : ''} onchange="toggleGroupTeacher(this)" class="shrink-0 w-4 h-4 md:w-5 md:h-5 text-pink-600 focus:ring-pink-500 rounded" ${!isChecked && tempSelected.length >= 4 ? 'disabled' : ''}>
-            <span class="font-bold text-gray-700 text-[11px] min-[375px]:text-xs md:text-base tracking-tighter truncate">${displayName}</span>
+          <label class="flex items-center gap-1 min-[375px]:gap-1.5 md:gap-3 p-2 min-[375px]:p-3 md:p-4 border-2 rounded-lg transition-colors ${bgClass} ${disabled} overflow-hidden w-full shadow-sm">
+            <input type="checkbox" value="${t}" ${isChecked ? 'checked' : ''} onchange="toggleGroupTeacher(this)" class="shrink-0 w-3.5 h-3.5 min-[375px]:w-4 min-[375px]:h-4 md:w-6 md:h-6 text-pink-600 focus:ring-pink-500 rounded" ${!isChecked && tempSelected.length >= 4 ? 'disabled' : ''}>
+            <span class="font-bold text-gray-700 text-[10.5px] min-[375px]:text-[12px] md:text-base tracking-tighter leading-none whitespace-nowrap">${displayName}</span>
           </label>
         `;
       }).join('');
