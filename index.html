@@ -20,9 +20,6 @@
   
   <!-- 引入 Tailwind CSS -->
   <script src="https://cdn.tailwindcss.com"></script>
-  <!-- 🔌 插上電源：引入 Panzoom 看圖神器套件 -->
-  <script src="https://cdn.jsdelivr.net/npm/@panzoom/panzoom/dist/panzoom.min.js"></script>
-  
   <!-- 升級為繁體中文專屬的手寫風字體 LXGW WenKai TC，確保名字絕不缺字、粗細統一 -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -181,38 +178,26 @@
   </div>
 
   <!-- === 校園地圖彈出視窗 (輪播模式) === -->
-  <div id="mapModal" class="fixed inset-0 bg-black/90 z-[100] hidden flex-col items-center justify-center opacity-0 transition-opacity duration-300 p-4 md:p-6">
-    <!-- 關閉按鈕 -->
-    <button onclick="hideMap()" class="absolute top-4 right-4 md:top-6 md:right-6 text-white hover:text-gray-300 focus:outline-none bg-black/50 rounded-full p-2 z-[110] backdrop-blur-sm shadow-lg">
-      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-7 h-7 md:w-9 md:h-9">
-        <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
-      </svg>
-    </button>
-    
-    <!-- 圖片容器 (加入 id="mapContainer" 供程式辨識縮放) -->
-    <div id="mapContainer" class="w-full flex-1 min-h-0 flex items-center justify-center mb-4 mt-10 md:mt-4 overflow-hidden">
-      <img id="mapImage" src="map1.png" alt="校園資訊圖" class="max-w-full max-h-full object-contain rounded-xl shadow-2xl bg-[#fffdfa]" onerror="this.onerror=null; this.src='https://placehold.co/800x600/eeeeee/999999?text=尚未上傳+map' + currentMapIndex + '.png';">
-    </div>
-
-    <!-- 底部控制列 -->
-    <div class="flex flex-col items-center justify-center gap-2 shrink-0 mb-2 md:mb-4 w-full">
-      <div class="text-gray-400 text-xs md:text-sm font-bold tracking-widest hidden md:block mb-1">
-        💡 電腦版可使用滑鼠滾輪縮放圖片
-      </div>
-      <div class="flex items-center justify-center gap-6 md:gap-10">
-        <button onclick="prevMap(event)" class="text-white hover:text-gray-300 focus:outline-none bg-black/50 rounded-full p-3 z-[110] backdrop-blur-sm shadow-lg transition-transform hover:scale-110 active:scale-95">
-          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="3" stroke="currentColor" class="w-7 h-7 md:w-8 md:h-8">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" />
-          </svg>
-        </button>
-        <div class="bg-black/60 text-white font-bold px-6 py-2 rounded-full text-base md:text-xl tracking-widest z-[110] backdrop-blur-sm shadow-lg">
-          <span id="mapPageNumber">1</span> / 3
-        </div>
-        <button onclick="nextMap(event)" class="text-white hover:text-gray-300 focus:outline-none bg-black/50 rounded-full p-3 z-[110] backdrop-blur-sm shadow-lg transition-transform hover:scale-110 active:scale-95">
-          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="3" stroke="currentColor" class="w-7 h-7 md:w-8 md:h-8">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
-          </svg>
-        </button>
+  <div id="mapModal" class="fixed inset-0 bg-black/90 z-[100] hidden flex-col items-center justify-center opacity-0 transition-opacity duration-300">
+    <div class="relative w-[95vw] h-[95vh] flex flex-col items-center justify-center">
+      <button onclick="hideMap()" class="absolute top-0 right-0 md:top-2 md:right-2 text-white hover:text-gray-300 focus:outline-none bg-black/40 rounded-full p-2 z-[110] backdrop-blur-sm">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-8 h-8 md:w-10 md:h-10">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+        </svg>
+      </button>
+      <button onclick="prevMap(event)" class="absolute left-0 top-1/2 -translate-y-1/2 text-white hover:text-gray-300 focus:outline-none bg-black/40 rounded-full p-2 z-[110] backdrop-blur-sm ml-2 md:ml-4">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="3" stroke="currentColor" class="w-8 h-8 md:w-10 md:h-10">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" />
+        </svg>
+      </button>
+      <img id="mapImage" src="map1.png" alt="校園資訊圖" class="w-full h-full object-contain rounded-xl shadow-2xl bg-[#fffdfa]" onerror="this.onerror=null; this.src='https://placehold.co/800x600/eeeeee/999999?text=尚未上傳+map' + currentMapIndex + '.png';">
+      <button onclick="nextMap(event)" class="absolute right-0 top-1/2 -translate-y-1/2 text-white hover:text-gray-300 focus:outline-none bg-black/40 rounded-full p-2 z-[110] backdrop-blur-sm mr-2 md:mr-4">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="3" stroke="currentColor" class="w-8 h-8 md:w-10 md:h-10">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
+        </svg>
+      </button>
+      <div class="absolute bottom-2 md:bottom-4 bg-black/60 text-white font-bold px-4 py-1.5 rounded-full text-sm md:text-lg tracking-widest z-[110] backdrop-blur-sm">
+        <span id="mapPageNumber">1</span> / 3
       </div>
     </div>
   </div>
@@ -263,31 +248,26 @@
       </svg>
     </button>
     
-    <!-- 圖片容器 (已加入 id="dutyContainer" 供程式辨識，避免當機) -->
-    <div id="dutyContainer" class="w-full flex-1 min-h-0 flex items-center justify-center mb-4 mt-10 md:mt-4 overflow-hidden">
+    <!-- 圖片容器 -->
+    <div class="w-full flex-1 min-h-0 flex items-center justify-center mb-4 mt-10 md:mt-4">
       <img id="dutyImage" src="duty1.png" alt="導護輪值表" class="max-w-full max-h-full object-contain rounded-xl shadow-2xl bg-[#fffdfa]" onerror="this.onerror=null; this.src='https://placehold.co/800x600/eeeeee/999999?text=尚未上傳+duty' + currentDutyIndex + '.png';">
     </div>
 
     <!-- 底部控制列 -->
-    <div class="flex flex-col items-center justify-center gap-2 shrink-0 mb-2 md:mb-4 w-full">
-      <div class="text-gray-400 text-xs md:text-sm font-bold tracking-widest hidden md:block mb-1">
-        💡 電腦版可使用滑鼠滾輪縮放圖片
+    <div class="flex items-center justify-center gap-6 md:gap-10 shrink-0 mb-2 md:mb-4">
+      <button onclick="prevDuty(event)" class="text-white hover:text-gray-300 focus:outline-none bg-black/50 rounded-full p-3 z-[110] backdrop-blur-sm shadow-lg transition-transform hover:scale-110 active:scale-95">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="3" stroke="currentColor" class="w-7 h-7 md:w-8 md:h-8">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" />
+        </svg>
+      </button>
+      <div class="bg-black/60 text-white font-bold px-6 py-2 rounded-full text-base md:text-xl tracking-widest z-[110] backdrop-blur-sm shadow-lg">
+        <span id="dutyPageNumber">1</span> / 2
       </div>
-      <div class="flex items-center justify-center gap-6 md:gap-10">
-        <button onclick="prevDuty(event)" class="text-white hover:text-gray-300 focus:outline-none bg-black/50 rounded-full p-3 z-[110] backdrop-blur-sm shadow-lg transition-transform hover:scale-110 active:scale-95">
-          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="3" stroke="currentColor" class="w-7 h-7 md:w-8 md:h-8">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" />
-          </svg>
-        </button>
-        <div class="bg-black/60 text-white font-bold px-6 py-2 rounded-full text-base md:text-xl tracking-widest z-[110] backdrop-blur-sm shadow-lg">
-          <span id="dutyPageNumber">1</span> / 2
-        </div>
-        <button onclick="nextDuty(event)" class="text-white hover:text-gray-300 focus:outline-none bg-black/50 rounded-full p-3 z-[110] backdrop-blur-sm shadow-lg transition-transform hover:scale-110 active:scale-95">
-          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="3" stroke="currentColor" class="w-7 h-7 md:w-8 md:h-8">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
-          </svg>
-        </button>
-      </div>
+      <button onclick="nextDuty(event)" class="text-white hover:text-gray-300 focus:outline-none bg-black/50 rounded-full p-3 z-[110] backdrop-blur-sm shadow-lg transition-transform hover:scale-110 active:scale-95">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="3" stroke="currentColor" class="w-7 h-7 md:w-8 md:h-8">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
+        </svg>
+      </button>
     </div>
   </div>
 
@@ -1253,19 +1233,9 @@
     // ==========================================
     const mapModal = document.getElementById('mapModal');
     const mapImage = document.getElementById('mapImage');
-    const mapContainer = document.getElementById('mapContainer');
     const mapPageNumber = document.getElementById('mapPageNumber');
     let currentMapIndex = 1;
     const totalMaps = 3;
-
-    // 啟動 Panzoom 縮放套件 (地圖)
-    const mapPanzoom = Panzoom(mapImage, {
-      maxScale: 5,
-      canvas: true,
-      contain: 'outside'
-    });
-    // 綁定電腦版滑鼠滾輪縮放
-    if(mapContainer) mapContainer.addEventListener('wheel', mapPanzoom.zoomWithWheel);
 
     function updateMapDisplay() {
       mapImage.src = `map${currentMapIndex}.png`;
@@ -1274,8 +1244,6 @@
         this.src = `https://placehold.co/800x600/eeeeee/999999?text=尚未上傳+map${currentMapIndex}.png`;
       };
       mapPageNumber.textContent = currentMapIndex;
-      // 切換圖片時自動還原 100% 置中
-      setTimeout(() => mapPanzoom.reset(), 50);
     }
 
     window.nextMap = function(e) {
@@ -1294,12 +1262,10 @@
       currentMapIndex = 1;
       updateMapDisplay();
       mapModal.classList.remove('hidden');
-      mapModal.classList.add('flex'); // 確保使用 flex 佈局置中
       document.body.classList.add('overflow-hidden');
       setTimeout(() => {
         mapModal.classList.remove('opacity-0');
         mapModal.classList.add('opacity-100');
-        mapPanzoom.reset(); // 打開時強迫還原 100% 置中
       }, 10);
     };
 
@@ -1307,11 +1273,7 @@
       mapModal.classList.remove('opacity-100');
       mapModal.classList.add('opacity-0');
       document.body.classList.remove('overflow-hidden');
-      setTimeout(() => { 
-        mapModal.classList.add('hidden'); 
-        mapModal.classList.remove('flex');
-        mapPanzoom.reset();
-      }, 300);
+      setTimeout(() => { mapModal.classList.add('hidden'); }, 300);
     };
 
     // 快速跳轉功能
@@ -1551,19 +1513,9 @@
     // ==========================================
     const dutyModal = document.getElementById('dutyModal');
     const dutyImage = document.getElementById('dutyImage');
-    const dutyContainer = document.getElementById('dutyContainer');
     const dutyPageNumber = document.getElementById('dutyPageNumber');
     let currentDutyIndex = 1;
     const totalDuty = 2; // 兩張導護表
-
-    // 啟動 Panzoom 縮放套件 (導護表)
-    const dutyPanzoom = Panzoom(dutyImage, {
-      maxScale: 5,
-      canvas: true,
-      contain: 'outside'
-    });
-    // 綁定電腦版滑鼠滾輪縮放
-    dutyContainer.addEventListener('wheel', dutyPanzoom.zoomWithWheel);
 
     function updateDutyDisplay() {
       dutyImage.src = `duty${currentDutyIndex}.png`;
@@ -1572,8 +1524,6 @@
         this.src = `https://placehold.co/800x600/eeeeee/999999?text=尚未上傳+duty${currentDutyIndex}.png`;
       };
       dutyPageNumber.textContent = currentDutyIndex;
-      // 切換圖片時，自動重置縮放比例 (變回原大小)
-      setTimeout(() => dutyPanzoom.reset(), 50);
     }
 
     window.nextDuty = function(e) {
@@ -1597,7 +1547,6 @@
       setTimeout(() => {
         dutyModal.classList.remove('opacity-0');
         dutyModal.classList.add('opacity-100');
-        dutyPanzoom.reset();
       }, 10);
     };
 
@@ -1608,7 +1557,6 @@
       setTimeout(() => { 
         dutyModal.classList.add('hidden');
         dutyModal.classList.remove('flex'); // 關閉移除
-        dutyPanzoom.reset();
       }, 300);
     };
 
