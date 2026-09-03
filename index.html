@@ -1431,6 +1431,7 @@
       searchInput.value = '';
       searchError.classList.add('hidden');
       searchModal.classList.remove('hidden');
+      searchModal.classList.add('flex'); // 加入 flex 屬性，確保視窗完美垂直/水平置中
       document.body.classList.add('overflow-hidden');
       setTimeout(() => { searchModal.classList.remove('opacity-0'); searchModal.classList.add('opacity-100'); searchInput.focus(); }, 10);
     };
@@ -1439,7 +1440,10 @@
       searchModal.classList.remove('opacity-100');
       searchModal.classList.add('opacity-0');
       document.body.classList.remove('overflow-hidden');
-      setTimeout(() => { searchModal.classList.add('hidden'); }, 300);
+      setTimeout(() => { 
+        searchModal.classList.add('hidden'); 
+        searchModal.classList.remove('flex'); // 關閉時清理狀態
+      }, 300);
     };
 
     window.executeSearch = function() {
