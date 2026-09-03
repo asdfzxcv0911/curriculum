@@ -177,42 +177,32 @@
     </div>
   </div>
 
-  <!-- === 新增：校園地圖彈出視窗 (輪播模式) === -->
+  <!-- === 校園地圖彈出視窗 (輪播模式) === -->
   <div id="mapModal" class="fixed inset-0 bg-black/90 z-[100] hidden flex-col items-center justify-center opacity-0 transition-opacity duration-300">
-    <!-- 圖片容器 (解開寬度封印，最大化 95% 寬高) -->
     <div class="relative w-[95vw] h-[95vh] flex flex-col items-center justify-center">
-      <!-- 關閉按鈕 (固定於右上角) -->
       <button onclick="hideMap()" class="absolute top-0 right-0 md:top-2 md:right-2 text-white hover:text-gray-300 focus:outline-none bg-black/40 rounded-full p-2 z-[110] backdrop-blur-sm">
         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-8 h-8 md:w-10 md:h-10">
           <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
         </svg>
       </button>
-      
-      <!-- ⬅️ 向左箭頭 -->
       <button onclick="prevMap(event)" class="absolute left-0 top-1/2 -translate-y-1/2 text-white hover:text-gray-300 focus:outline-none bg-black/40 rounded-full p-2 z-[110] backdrop-blur-sm ml-2 md:ml-4">
         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="3" stroke="currentColor" class="w-8 h-8 md:w-10 md:h-10">
           <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" />
         </svg>
       </button>
-
-      <!-- 圖片本體 (預設顯示 map1.png) -->
       <img id="mapImage" src="map1.png" alt="校園資訊圖" class="w-full h-full object-contain rounded-xl shadow-2xl bg-[#fffdfa]" onerror="this.onerror=null; this.src='https://placehold.co/800x600/eeeeee/999999?text=尚未上傳+map' + currentMapIndex + '.png';">
-
-      <!-- ➡️ 向右箭頭 -->
       <button onclick="nextMap(event)" class="absolute right-0 top-1/2 -translate-y-1/2 text-white hover:text-gray-300 focus:outline-none bg-black/40 rounded-full p-2 z-[110] backdrop-blur-sm mr-2 md:mr-4">
         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="3" stroke="currentColor" class="w-8 h-8 md:w-10 md:h-10">
           <path stroke-linecap="round" stroke-linejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
         </svg>
       </button>
-
-      <!-- 頁碼顯示器 (例如 1 / 3) -->
       <div class="absolute bottom-2 md:bottom-4 bg-black/60 text-white font-bold px-4 py-1.5 rounded-full text-sm md:text-lg tracking-widest z-[110] backdrop-blur-sm">
         <span id="mapPageNumber">1</span> / 3
       </div>
     </div>
   </div>
 
-  <!-- === 新增：群組選擇彈出視窗 (超級過濾器) === -->
+  <!-- === 群組選擇彈出視窗 (超級過濾器) === -->
   <div id="groupModal" class="fixed inset-0 bg-black/80 z-[100] hidden flex-col items-center justify-center opacity-0 transition-opacity duration-300">
     <div class="bg-white w-[90vw] max-w-lg rounded-2xl shadow-2xl p-4 md:p-6 flex flex-col max-h-[85vh]">
       <div class="flex justify-between items-center mb-4">
@@ -235,7 +225,7 @@
     </div>
   </div>
 
-  <!-- === 新增：搜尋彈出視窗 === -->
+  <!-- === 搜尋彈出視窗 === -->
   <div id="searchModal" class="fixed inset-0 bg-black/80 z-[100] hidden flex-col items-center justify-center opacity-0 transition-opacity duration-300">
     <div class="bg-white w-[85vw] max-w-sm rounded-2xl shadow-2xl p-5 flex flex-col relative">
       <button onclick="hideSearchModal()" class="absolute top-3 right-3 text-gray-400 hover:text-red-500 focus:outline-none">
@@ -246,6 +236,25 @@
       <input type="text" id="searchInput" class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl text-center text-lg focus:outline-none focus:border-blue-400 mb-3" placeholder="請輸入關鍵字...">
       <button onclick="executeSearch()" class="w-full bg-blue-500 hover:bg-blue-600 text-white font-bold py-3 rounded-xl transition-colors">開始搜尋</button>
       <p id="searchError" class="hidden text-red-500 text-xs font-bold mt-2 text-center">找不到相符的課表，請重新輸入</p>
+    </div>
+  </div>
+
+  <!-- === 導護輪值表彈出視窗 (輪播模式) === -->
+  <div id="dutyModal" class="fixed inset-0 bg-black/90 z-[100] hidden flex-col items-center justify-center opacity-0 transition-opacity duration-300">
+    <div class="relative w-[95vw] h-[95vh] flex flex-col items-center justify-center">
+      <button onclick="hideDuty()" class="absolute top-0 right-0 md:top-2 md:right-2 text-white hover:text-gray-300 focus:outline-none bg-black/40 rounded-full p-2 z-[110] backdrop-blur-sm">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-8 h-8 md:w-10 md:h-10"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
+      </button>
+      <button onclick="prevDuty(event)" class="absolute left-0 top-1/2 -translate-y-1/2 text-white hover:text-gray-300 focus:outline-none bg-black/40 rounded-full p-2 z-[110] backdrop-blur-sm ml-2 md:ml-4">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="3" stroke="currentColor" class="w-8 h-8 md:w-10 md:h-10"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" /></svg>
+      </button>
+      <img id="dutyImage" src="duty1.png" alt="導護輪值表" class="w-full h-full object-contain rounded-xl shadow-2xl bg-[#fffdfa]" onerror="this.onerror=null; this.src='https://placehold.co/800x600/eeeeee/999999?text=尚未上傳+duty' + currentDutyIndex + '.png';">
+      <button onclick="nextDuty(event)" class="absolute right-0 top-1/2 -translate-y-1/2 text-white hover:text-gray-300 focus:outline-none bg-black/40 rounded-full p-2 z-[110] backdrop-blur-sm mr-2 md:mr-4">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="3" stroke="currentColor" class="w-8 h-8 md:w-10 md:h-10"><path stroke-linecap="round" stroke-linejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" /></svg>
+      </button>
+      <div class="absolute bottom-2 md:bottom-4 bg-black/60 text-white font-bold px-4 py-1.5 rounded-full text-sm md:text-lg tracking-widest z-[110] backdrop-blur-sm">
+        <span id="dutyPageNumber">1</span> / 2
+      </div>
     </div>
   </div>
 
@@ -301,19 +310,22 @@
         </select>
       </div>
 
-      <!-- === 新增：群組挑選按鈕 (預設隱藏) === -->
+      <!-- === 群組挑選按鈕 (預設隱藏) === -->
       <div id="groupSelectWrapper" class="flex flex-col gap-1 hidden">
         <label class="text-[10px] md:text-sm font-semibold text-gray-600 pl-1">挑選名單</label>
         <button id="groupSelectBtn" onclick="showGroupModal()" class="w-auto px-3 py-1 bg-pink-50 border-2 border-pink-200 rounded-lg text-pink-900 font-bold text-xs md:text-lg hover:bg-pink-100 transition-colors">➕ 挑選老師 (0/4)</button>
       </div>
 
-      <!-- === 放大鏡與地圖按鈕 (合併區塊) === -->
+      <!-- === 放大鏡、地圖與紅綠燈按鈕 (三劍客合併區塊) === -->
       <div class="flex flex-row gap-1 items-end pb-[2px] md:pb-[3px]">
         <button onclick="showSearchModal()" class="w-[28px] h-[28px] md:w-[38px] md:h-[38px] bg-white border-2 border-gray-200 rounded-lg flex items-center justify-center shadow-sm hover:bg-gray-50 hover:border-gray-300 transition-colors focus:outline-none text-sm md:text-2xl" title="搜尋班級或老師">
           🔍
         </button>
         <button onclick="showMap()" class="w-[28px] h-[28px] md:w-[38px] md:h-[38px] bg-white border-2 border-gray-200 rounded-lg flex items-center justify-center shadow-sm hover:bg-gray-50 hover:border-gray-300 transition-colors focus:outline-none text-sm md:text-2xl" title="查看校園地圖">
           🗺️
+        </button>
+        <button onclick="showDuty()" class="w-[28px] h-[28px] md:w-[38px] md:h-[38px] bg-white border-2 border-gray-200 rounded-lg flex items-center justify-center shadow-sm hover:bg-gray-50 hover:border-gray-300 transition-colors focus:outline-none text-sm md:text-2xl" title="查看導護輪值表">
+          🚦
         </button>
       </div>
 
@@ -720,7 +732,7 @@
       updateTitle(); 
     };
 
-    // 新增：回首頁 (讀取釘選紀錄並跳轉)
+    // 🏡 回首頁 (讀取釘選紀錄並跳轉)
     window.goHome = function(e) {
       if (e) e.stopPropagation();
       const savedFav = JSON.parse(localStorage.getItem('erlingFav') || 'null');
@@ -746,7 +758,7 @@
       const starSvgSolid = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="#f59e0b" class="w-6 h-6 min-[375px]:w-7 min-[375px]:h-7 md:w-9 md:h-9 drop-shadow-sm"><path fill-rule="evenodd" d="M10.788 3.21c.448-1.077 1.976-1.077 2.424 0l2.082 5.007 5.404.433c1.164.093 1.636 1.545.749 2.305l-4.117 3.527 1.257 5.273c.271 1.136-.964 2.033-1.96 1.425L12 18.354 7.373 21.18c-.996.608-2.231-.29-1.96-1.425l1.257-5.273-4.117-3.527c-.887-.76-.415-2.212.749-2.305l5.404-.433 2.082-5.006z" clip-rule="evenodd" /></svg>`;
       const starSvgOutline = `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="#cbd5e1" class="w-6 h-6 min-[375px]:w-7 min-[375px]:h-7 md:w-9 md:h-9 hover:stroke-yellow-400 transition-colors"><path stroke-linecap="round" stroke-linejoin="round" d="M11.48 3.499a.562.562 0 011.04 0l2.125 5.111a.563.563 0 00.475.345l5.518.442c.499.04.701.663.321.988l-4.204 3.602a.563.563 0 00-.182.557l1.285 5.385c.148.621-.531 1.12-1.097.82l-4.773-2.533a.563.563 0 00-.536 0l-4.773 2.533c-.566.3-.1245-.199.022-.82l1.285-5.385a.563.563 0 00-.182-.557l-4.204-3.602c-.38-.325-.178-.948.321-.988l5.518-.442a.563.563 0 00.475-.345L11.48 3.5z" /></svg>`;
 
-      // 檢查是否已釘選，如果有，就產生「回首頁」房子按鈕
+      // 檢查是否已釘選，如果有，就產生「回首頁」房子按鈕 (防呆機制 A)
       const savedFavForHome = JSON.parse(localStorage.getItem('erlingFav') || 'null');
       const homeSvg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="#14b8a6" class="w-6 h-6 min-[375px]:w-7 min-[375px]:h-7 md:w-9 md:h-9 drop-shadow-sm"><path d="M11.47 3.84a.75.75 0 011.06 0l8.99 9a.75.75 0 11-1.06 1.06l-4.21-4.21V21a.75.75 0 01-.75.75h-3.5a.75.75 0 01-.75-.75v-4.5a.75.75 0 00-.75-.75h-3a.75.75 0 00-.75.75V21a.75.75 0 01-.75.75H4a.75.75 0 01-.75-.75v-11.3l-4.21 4.21a.75.75 0 11-1.06-1.06l8.99-9z" /></svg>`;
       const homeBtn = savedFavForHome ? `<span onclick="goHome(event)" class="cursor-pointer hover:scale-110 active:scale-95 transition-transform mr-1 md:mr-2" title="回到釘選首頁">${homeSvg}</span>` : '';
@@ -858,7 +870,7 @@
         currentTeacher = currentTeacher.split('-')[1];
       }
 
-      // --- 新增：計算總節數邏輯 ---
+      // --- 計算總節數邏輯 ---
       let totalSlots = 0;
       let showTotal = false;
       let targetCountTeacher = '';
@@ -942,7 +954,7 @@
           for (let i = 0; i < 5; i++) {
             let dayKey = days[i];
             
-            // --- 新增：判斷是否為「總節數」顯示格 ---
+            // --- 判斷是否為「總節數」顯示格 ---
             let isTotalCell = false;
             if (showTotal && dayKey === 'WED') {
               if (targetCountTeacher === '李介麟' && slot.origIndex === 8) isTotalCell = true;
@@ -957,7 +969,7 @@
                            <span class="text-[13px] min-[375px]:text-[15px] md:text-[24px] font-bold text-slate-400 whitespace-nowrap tracking-tighter">共${totalSlots}節</span>
                          </div>
                        </td>`;
-              continue; // 填入總節數後，直接跳過後續原本的空堂渲染邏輯
+              continue; 
             }
             // ----------------------------------------
 
@@ -1237,6 +1249,7 @@
       currentMapIndex = 1;
       updateMapDisplay();
       mapModal.classList.remove('hidden');
+      document.body.classList.add('overflow-hidden');
       setTimeout(() => {
         mapModal.classList.remove('opacity-0');
         mapModal.classList.add('opacity-100');
@@ -1246,14 +1259,7 @@
     window.hideMap = function() {
       mapModal.classList.remove('opacity-100');
       mapModal.classList.add('opacity-0');
-      
-      const viewportMeta = document.querySelector('meta[name="viewport"]');
-      if (viewportMeta) {
-        viewportMeta.content = 'width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no';
-        setTimeout(() => {
-          viewportMeta.content = 'width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes';
-        }, 100);
-      }
+      document.body.classList.remove('overflow-hidden');
       setTimeout(() => { mapModal.classList.add('hidden'); }, 300);
     };
 
@@ -1291,30 +1297,27 @@
     const groupCountText = document.getElementById('groupCountText');
     let tempSelected = []; 
 
-    // 新增：智慧獲取老師清單 (自動冠名與強制排序)
     function getGroupTeacherOptions() {
       let teacherInfo = [];
       let seen = new Set(); 
 
-      // 1. 導師名單 (自動轉換為 101~603)
       Object.keys(classSchedules).forEach(cls => {
         let name = getHomeroomTeacher(cls);
         if (name && !seen.has(name)) {
           let gradeMap = {'一':1, '二':2, '三':3, '四':4, '五':5, '六':6};
           let grade = gradeMap[cls.charAt(0)];
           let classNum = cls.replace(/[^0-9]/g, '');
-          let shortClass = grade + '0' + classNum; // 產生 101 格式
+          let shortClass = grade + '0' + classNum;
           
           teacherInfo.push({
-            originalName: name, // 系統底層依舊認得這個本名
+            originalName: name,
             displayLabel: `${shortClass} ${name}`,
-            sortWeight: parseInt(shortClass) // 權重 101~603
+            sortWeight: parseInt(shortClass)
           });
           seen.add(name);
         }
       });
 
-      // 2. 行政與科任名單 (按處室倫理排序，並自動擷取職稱前綴)
       const deptWeights = { '教務處': 1000, '學務處': 2000, '總務處': 3000, '輔導室': 4000, '資源班': 5000, '純科任': 6000 };
       
       for (const [dept, teachers] of Object.entries(subjectTeachers)) {
@@ -1324,38 +1327,32 @@
           let originalName = tStr.includes('-') ? tStr.split('-')[1] : tStr;
           if (!seen.has(originalName)) {
             let displayLabel = originalName;
-            
-            // 自動冠名邏輯
             if (tStr.includes('-')) {
-              let title = tStr.split('-')[0]; // 例如: 教務主任, 教學組長
-              let prefix = title.substring(0, 2); // 擷取前兩字: 教務, 教學
+              let title = tStr.split('-')[0];
+              let prefix = title.substring(0, 2);
               displayLabel = `${prefix}-${originalName}`;
             } else if (dept === '資源班') {
               displayLabel = `資源-${originalName}`;
             } else if (dept === '純科任') {
               displayLabel = `科任-${originalName}`;
             }
-
             teacherInfo.push({
               originalName: originalName,
               displayLabel: displayLabel,
-              sortWeight: 10000 + baseWeight + index // 處室順序 + 內部順序
+              sortWeight: 10000 + baseWeight + index
             });
             seen.add(originalName);
           }
           index++;
         });
       }
-      
-      // 依照權重排序後回傳
-    return teacherInfo.sort((a, b) => a.sortWeight - b.sortWeight);
+      return teacherInfo.sort((a, b) => a.sortWeight - b.sortWeight);
   }
 
   window.showGroupModal = function() {
     tempSelected = [...selectedGroupTeachers];
     renderGroupCheckboxes();
     groupModal.classList.remove('hidden');
-    // 鎖定背景，防止滾動穿透
     document.body.classList.add('overflow-hidden');
     setTimeout(() => { groupModal.classList.remove('opacity-0'); groupModal.classList.add('opacity-100'); }, 10);
   };
@@ -1363,7 +1360,6 @@
   window.hideGroupModal = function() {
     groupModal.classList.remove('opacity-100');
     groupModal.classList.add('opacity-0');
-    // 解除背景鎖定，恢復正常網頁滑動
     document.body.classList.remove('overflow-hidden');
     setTimeout(() => { groupModal.classList.add('hidden'); }, 300);
   };
@@ -1375,8 +1371,6 @@
         let disabled = !isChecked && tempSelected.length >= 4 ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer';
         let bgClass = isChecked ? 'bg-pink-100 border-pink-400' : 'bg-gray-50 border-gray-200';
         
-        // 絕對凍結原本版面：gap-2 p-2 border-2 rounded-lg 100%不變
-        // 加入防線：whitespace-nowrap (不跨行) + tracking-tighter (稍微擠字) + text-[大小] (智慧縮小)
         return `
           <label class="flex items-center gap-2 p-2 border-2 rounded-lg transition-colors ${bgClass} ${disabled}">
             <input type="checkbox" value="${t.originalName}" ${isChecked ? 'checked' : ''} onchange="toggleGroupTeacher(this)" class="shrink-0 w-4 h-4 text-pink-600 focus:ring-pink-500 rounded" ${!isChecked && tempSelected.length >= 4 ? 'disabled' : ''}>
@@ -1386,7 +1380,6 @@
       }).join('');
       groupCountText.textContent = `已選: ${tempSelected.length}/4`;
 
-      // 控制「取消全選」按鈕的顯示與隱藏
       const clearBtn = document.getElementById('clearGroupBtn');
       if (clearBtn) {
         if (tempSelected.length > 0) {
@@ -1414,7 +1407,6 @@
       updateTitle(); 
     }
 
-    // 新增：取消全選功能
     window.clearGroupSelection = function() {
       tempSelected = [];
       renderGroupCheckboxes();
@@ -1431,7 +1423,7 @@
       searchInput.value = '';
       searchError.classList.add('hidden');
       searchModal.classList.remove('hidden');
-      searchModal.classList.add('flex'); // 加入 flex 屬性，確保視窗完美垂直/水平置中
+      searchModal.classList.add('flex'); // 確保置中
       document.body.classList.add('overflow-hidden');
       setTimeout(() => { searchModal.classList.remove('opacity-0'); searchModal.classList.add('opacity-100'); searchInput.focus(); }, 10);
     };
@@ -1442,7 +1434,7 @@
       document.body.classList.remove('overflow-hidden');
       setTimeout(() => { 
         searchModal.classList.add('hidden'); 
-        searchModal.classList.remove('flex'); // 關閉時清理狀態
+        searchModal.classList.remove('flex'); // 關閉時移除置中
       }, 300);
     };
 
@@ -1454,16 +1446,13 @@
       let targetDept = '';
       let targetTeacher = '';
 
-      // 1. 班級數字防呆 (例如輸入 101)
       if (/^[1-6]0[1-9]$/.test(keyword)) {
         const gradeMap = {'1':'一', '2':'二', '3':'三', '4':'四', '5':'五', '6':'六'};
         targetClass = `${gradeMap[keyword[0]]}年${keyword[2]}班`;
       } 
-      // 2. 班級正常輸入 (例如 一年1班)
       else if (classOptions.includes(keyword)) {
         targetClass = keyword;
       }
-      // 3. 搜尋老師名字
       else {
         for (const dept in subjectTeachers) {
           const found = subjectTeachers[dept].find(t => t.includes(keyword));
@@ -1474,7 +1463,6 @@
           }
         }
         if (!targetTeacher) {
-          // 找找看是不是導師
           for (const cls in classSchedules) {
             if (getHomeroomTeacher(cls).includes(keyword)) {
               targetClass = cls;
@@ -1505,6 +1493,71 @@
 
     searchInput.addEventListener('keypress', function(e) {
       if (e.key === 'Enter') executeSearch();
+    });
+
+    // ==========================================
+    // 導護輪值表彈出視窗功能
+    // ==========================================
+    const dutyModal = document.getElementById('dutyModal');
+    const dutyImage = document.getElementById('dutyImage');
+    const dutyPageNumber = document.getElementById('dutyPageNumber');
+    let currentDutyIndex = 1;
+    const totalDuty = 2; // 兩張導護表
+
+    function updateDutyDisplay() {
+      dutyImage.src = `duty${currentDutyIndex}.png`;
+      dutyImage.onerror = function() {
+        this.onerror = null; 
+        this.src = `https://placehold.co/800x600/eeeeee/999999?text=尚未上傳+duty${currentDutyIndex}.png`;
+      };
+      dutyPageNumber.textContent = currentDutyIndex;
+    }
+
+    window.nextDuty = function(e) {
+      if (e) e.stopPropagation(); 
+      currentDutyIndex = currentDutyIndex >= totalDuty ? 1 : currentDutyIndex + 1;
+      updateDutyDisplay();
+    };
+
+    window.prevDuty = function(e) {
+      if (e) e.stopPropagation(); 
+      currentDutyIndex = currentDutyIndex <= 1 ? totalDuty : currentDutyIndex - 1;
+      updateDutyDisplay();
+    };
+
+    window.showDuty = function() {
+      currentDutyIndex = 1;
+      updateDutyDisplay();
+      dutyModal.classList.remove('hidden');
+      dutyModal.classList.add('flex'); // 加入置中防呆
+      document.body.classList.add('overflow-hidden');
+      setTimeout(() => {
+        dutyModal.classList.remove('opacity-0');
+        dutyModal.classList.add('opacity-100');
+      }, 10);
+    };
+
+    window.hideDuty = function() {
+      dutyModal.classList.remove('opacity-100');
+      dutyModal.classList.add('opacity-0');
+      document.body.classList.remove('overflow-hidden');
+      setTimeout(() => { 
+        dutyModal.classList.add('hidden');
+        dutyModal.classList.remove('flex'); // 關閉移除
+      }, 300);
+    };
+
+    // === 圖片預先載入 (Preloading) 讓切換零延遲 ===
+    window.addEventListener('load', function() {
+      const imagesToPreload = [
+        'map1.png', 'map2.png', 'map3.png',
+        'duty1.png', 'duty2.png'
+      ];
+      
+      imagesToPreload.forEach(function(src) {
+        const img = new Image();
+        img.src = src; // 觸發瀏覽器在背景偷偷下載
+      });
     });
 
   </script>
